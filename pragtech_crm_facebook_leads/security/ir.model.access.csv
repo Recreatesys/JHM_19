@@ -1,0 +1,12 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+
+access_socail_dashboard1,socail.dashboard1,model_facebook_socail_dashboard,,1,1,1,1
+access_pragtech_social_account1,pragtech.social.account1,model_facebook_pragtech_social_account,,1,1,1,1
+access_pragtech_social_media1,pragtech.social.media1,model_facebook_pragtech_social_media,,1,1,1,1
+
+access_crm_facebook_page_manager,crm.facebook.page.manager,model_crm_facebook_page,sales_team.group_sale_manager,1,1,1,1
+access_crm_facebook_form_manager,crm.facebook.form.manager,model_crm_facebook_form,sales_team.group_sale_manager,1,1,1,1
+access_crm_facebook_page_user,crm.facebook.page.manager,model_crm_facebook_page,sales_team.group_sale_salesman,1,1,1,1
+access_crm_facebook_form_user,crm.facebook.form.manager,model_crm_facebook_form,sales_team.group_sale_salesman,1,1,1,1
+access_crm_facebook_form_field_manager,crm.facebook.form.field.manager,model_crm_facebook_form_field,sales_team.group_sale_manager,1,1,1,1
+access_crm_facebook_adset_user,crm.facebook.adset.user,model_fb_utm_adset,sales_team.group_sale_salesman,1,1,1,1

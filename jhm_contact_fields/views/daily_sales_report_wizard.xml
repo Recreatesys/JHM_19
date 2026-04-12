@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Search view ──────────────────────────────────────────────────── -->
+    <record id="view_jhm_sales_daily_search" model="ir.ui.view">
+        <field name="name">jhm.sales.daily.line.search</field>
+        <field name="model">jhm.sales.daily.line</field>
+        <field name="arch" type="xml">
+            <search string="Daily Sales Report">
+                <filter string="Today"
+                        name="today"
+                        domain="[('date','=',context_today())]"/>
+                <filter string="This Month"
+                        name="this_month"
+                        domain="[('date','&gt;=', (context_today()).strftime('%Y-%m-01'))]"/>
+                <filter string="Last 7 Days"
+                        name="last_7"
+                        domain="[('date','&gt;=', (context_today() - relativedelta(days=6)).strftime('%Y-%m-%d'))]"/>
+                <filter string="Last 30 Days"
+                        name="last_30"
+                        domain="[('date','&gt;=', (context_today() - relativedelta(days=29)).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <field name="user_id" string="Salesperson"/>
+                <separator/>
+                <filter string="Salesperson" name="by_salesperson"
+                        context="{'group_by': 'user_id'}"/>
+                <filter string="Day"         name="by_date"
+                        context="{'group_by': 'date:day'}"/>
+                <filter string="Week"        name="by_week"
+                        context="{'group_by': 'date:week'}"/>
+                <filter string="Month"       name="by_month"
+                        context="{'group_by': 'date:month'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── Pivot view ───────────────────────────────────────────────────── -->
+    <record id="view_jhm_sales_daily_pivot" model="ir.ui.view">
+        <field name="name">jhm.sales.daily.line.pivot</field>
+        <field name="model">jhm.sales.daily.line</field>
+        <field name="arch" type="xml">
+            <pivot string="Daily Sales Report" disable_linking="True">
+                <!-- Rows: salesperson -->
+                <field name="user_id"               type="row"/>
+                <!-- Columns: date broken down by day -->
+                <field name="date"                  type="col" interval="day"/>
+                <!-- Measures (all visible by default) -->
+                <field name="new_leads"             type="measure"/>
+                <field name="existing_leads"        type="measure"/>
+                <field name="existing_leads_lt50"   type="measure"/>
+                <field name="total_calls"           type="measure"/>
+                <field name="support_count"         type="measure"/>
+                <field name="appointment_count"     type="measure"/>
+                <field name="daily_sales"           type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- ── List view (fallback for details) ────────────────────────────── -->
+    <record id="view_jhm_sales_daily_list" model="ir.ui.view">
+        <field name="name">jhm.sales.daily.line.list</field>
+        <field name="model">jhm.sales.daily.line</field>
+        <field name="arch" type="xml">
+            <list string="Daily Sales Report" create="false" edit="false" delete="false">
+                <field name="date"                string="Date"/>
+                <field name="user_id"             string="Salesperson"/>
+                <field name="new_leads"           string="# New Leads"/>
+                <field name="existing_leads"      string="# Existing Leads"/>
+                <field name="existing_leads_lt50" string="# Existing (&lt;50%)"/>
+                <field name="total_calls"         string="Total Call"/>
+                <field name="support_count"       string="# Support"/>
+                <field name="appointment_count"   string="# Appointment"/>
+                <field name="daily_sales"         string="$ Daily Sales" widget="monetary"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Window action ────────────────────────────────────────────────── -->
+    <record id="action_jhm_daily_sales_report_wizard" model="ir.actions.act_window">
+        <field name="name">Daily Sales Report</field>
+        <field name="res_model">jhm.sales.daily.line</field>
+        <field name="view_mode">pivot,list</field>
+        <field name="target">current</field>
+        <field name="search_view_id" ref="view_jhm_sales_daily_search"/>
+        <field name="context">{'search_default_last_7': 1, 'search_default_by_salesperson': 1}</field>
+    </record>
+
+    <!-- ── CRM Reporting menu item ──────────────────────────────────────── -->
+    <menuitem
+        id="menu_jhm_daily_sales_report"
+        name="Daily Sales Report"
+        parent="crm.crm_menu_report"
+        action="action_jhm_daily_sales_report_wizard"
+        sequence="25"/>
+
+</odoo>

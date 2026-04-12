@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- noupdate="0" ensures this re-applies on every module upgrade -->
+<odoo noupdate="0">
+    <!-- Force DD/MM/YYYY date format for all input, display, and import parsing -->
+    <record id="base.lang_en" model="res.lang">
+        <field name="date_format">%d/%m/%Y</field>
+    </record>
+</odoo>

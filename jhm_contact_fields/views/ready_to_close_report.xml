@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Search view ─────────────────────────────────────────────────── -->
+    <record id="view_ready_to_close_search" model="ir.ui.view">
+        <field name="name">crm.lead.ready.to.close.search</field>
+        <field name="model">crm.lead</field>
+        <field name="arch" type="xml">
+            <search string="Ready to Close Report">
+                <filter string="Ready to Close Stage"
+                        name="ready_to_close"
+                        domain="[('stage_id.name','=','Ready to Close')]"/>
+                <filter string="Active"
+                        name="active_only"
+                        domain="[('active','=',True)]"/>
+                <separator/>
+                <field name="partner_id"          string="Client"/>
+                <field name="user_id"             string="Salesperson"/>
+                <field name="partner_visa_program_id" string="Visa Program"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── List view ───────────────────────────────────────────────────── -->
+    <record id="view_ready_to_close_list" model="ir.ui.view">
+        <field name="name">crm.lead.ready.to.close.list</field>
+        <field name="model">crm.lead</field>
+        <field name="arch" type="xml">
+            <list string="Ready to Close Report"
+                  create="false" delete="false" edit="false"
+                  default_order="partner_appointment_date asc">
+
+                <field name="partner_id"
+                       string="Client Name"
+                       optional="show"/>
+                <field name="user_id"
+                       string="Salesperson"
+                       optional="show"/>
+                <field name="co_owner_ids"
+                       string="Co-owner"
+                       widget="many2many_tags"
+                       optional="show"/>
+                <field name="partner_visa_program_id"
+                       string="Visa Program"
+                       optional="show"/>
+                <field name="partner_appointment_date"
+                       string="Appointment Date"
+                       optional="show"/>
+                <field name="partner_appointment_notes"
+                       string="Comment"
+                       optional="show"/>
+                <field name="partner_jhm_description"
+                       string="Description"
+                       optional="show"/>
+                <field name="partner_facing_problems"
+                       string="Facing Problems"
+                       optional="show"/>
+                <field name="partner_chat_log"
+                       string="Chat Log"
+                       optional="show"/>
+                <field name="expected_revenue"
+                       string="Expected Revenue"
+                       optional="show"/>
+                <field name="sale_order_amount"
+                       string="Sales Order Amount"
+                       sum="Total Sales Order Amount"
+                       optional="show"/>
+
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Window action ───────────────────────────────────────────────── -->
+    <record id="action_ready_to_close_report" model="ir.actions.act_window">
+        <field name="name">Ready to Close Report</field>
+        <field name="res_model">crm.lead</field>
+        <field name="view_mode">list</field>
+        <field name="target">current</field>
+        <field name="domain">[('type','=','opportunity')]</field>
+        <field name="search_view_id" ref="view_ready_to_close_search"/>
+        <field name="context">{
+            'search_default_ready_to_close': 1,
+            'search_default_active_only': 1
+        }</field>
+        <field name="view_ids" eval="[(5,0,0),(0,0,{'view_mode':'list','view_id':ref('view_ready_to_close_list')})]"/>
+    </record>
+
+    <!-- ── CRM Reporting menu ──────────────────────────────────────────── -->
+    <menuitem
+        id="menu_ready_to_close_report"
+        name="Ready to Close Report"
+        parent="crm.crm_menu_report"
+        action="action_ready_to_close_report"
+        sequence="27"/>
+
+</odoo>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="facebook_social_dashboard_data_record" model="facebook.socail.dashboard">
+        <field name="name">Facebook Dashboard</field>
+    </record>
+     <record id="facebook_pragtech_social_media_facebook" model="facebook.pragtech.social.media">
+            <field name="media_name">Facebook</field>
+            <field name="media_type">facebook</field>
+            <field name="media_description">Manage Facebook Pages and Forms</field>
+            <field name="media_image" type="base64" file="pragtech_crm_facebook_leads/static/src/img/facebook_image.svg"/>
+        </record>
+    <!-- <record model="utm.medium" id="utm_medium_facebook">
+            <field name="name">Facebook</field>
+        </record>
+
+         <record id="utm_source_facebook" model="utm.source">
+            <field name="name">Facebook</field>
+        </record> -->
+</odoo>

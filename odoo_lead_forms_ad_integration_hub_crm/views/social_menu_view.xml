@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <menuitem
+                id="social_dashboard_main_menu"
+                name="Social Dashboard"
+                sequence="9"/>
+
+
+        <menuitem
+                id="social_dashboard_social_configuration"
+                parent="social_dashboard_main_menu"
+                name="Configuration"
+                sequence="40"/>
+
+    </data>
+</odoo>

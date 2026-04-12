@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_fullname" model="ir.ui.view">
+        <field name="name">res.partner.form.fullname</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <!-- Restore the individual name field (contact name) — make it visible again -->
+            <xpath expr="//h1/field[@name='name'][2]" position="attributes">
+                <attribute name="invisible">is_company</attribute>
+            </xpath>
+
+            <!-- Add First Name and Last Name below the contact name, smaller font -->
+            <xpath expr="//h1" position="after">
+                <div class="d-flex gap-2 mb-2" invisible="is_company" style="font-size: 0.85rem; color: #6c757d;">
+                    <field name="first_name"
+                           widget="text"
+                           options="{'line_breaks': False}"
+                           class="text-break"
+                           placeholder="First Name"
+                           style="font-size: 0.85rem;"/>
+                    <field name="last_name"
+                           widget="text"
+                           options="{'line_breaks': False}"
+                           class="text-break"
+                           placeholder="Last Name"
+                           style="font-size: 0.85rem;"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

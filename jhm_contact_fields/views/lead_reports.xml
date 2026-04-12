@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         LEAD PERFORMANCE REPORT
+         Rows: Lead Source (all, even zero)
+         Cols: Visa Program × Probability
+         Measure: # Leads  +  row subtotal (built-in pivot Total column)
+    ══════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_lead_performance_search" model="ir.ui.view">
+        <field name="name">jhm.lead.performance.line.search</field>
+        <field name="model">jhm.lead.performance.line</field>
+        <field name="arch" type="xml">
+            <search string="Lead Performance Report">
+                <field name="lead_source_id"  string="Lead Source"/>
+                <field name="visa_program_id" string="Visa Program"/>
+                <field name="probability"     string="Probability"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_lead_performance_pivot" model="ir.ui.view">
+        <field name="name">jhm.lead.performance.line.pivot</field>
+        <field name="model">jhm.lead.performance.line</field>
+        <field name="arch" type="xml">
+            <!-- Y-axis: Lead Source | X-axis: Visa Program, Probability -->
+            <pivot string="Lead Performance Report" disable_linking="True">
+                <field name="lead_source_id"  type="row"/>
+                <field name="visa_program_id" type="col"/>
+                <field name="probability"     type="col"/>
+                <field name="lead_count"      type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_lead_performance_report" model="ir.actions.act_window">
+        <field name="name">Lead Performance Report</field>
+        <field name="res_model">jhm.lead.performance.line</field>
+        <field name="view_mode">pivot</field>
+        <field name="target">current</field>
+        <field name="search_view_id" ref="view_lead_performance_search"/>
+    </record>
+
+    <menuitem
+        id="menu_lead_performance_report"
+        name="Lead Performance Report"
+        parent="crm.crm_menu_report"
+        action="action_lead_performance_report"
+        sequence="28"/>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         QUALIFIED LEAD REPORT
+         Rows: Salesperson, Probability, Create Date (month)
+         Measure: # Qualified Leads  +  row subtotal (built-in Total)
+    ══════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_qualified_lead_search" model="ir.ui.view">
+        <field name="name">jhm.qualified.lead.line.search</field>
+        <field name="model">jhm.qualified.lead.line</field>
+        <field name="arch" type="xml">
+            <search string="Qualified Lead Report">
+                <filter string="This Month" name="this_month"
+                        domain="[('create_month','=', context_today().strftime('%Y-%m-01'))]"/>
+                <filter string="This Year"  name="this_year"
+                        domain="[('create_month','&gt;=', context_today().strftime('%Y-01-01'))]"/>
+                <separator/>
+                <field name="user_id"     string="Salesperson"/>
+                <field name="probability" string="Probability"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_qualified_lead_pivot" model="ir.ui.view">
+        <field name="name">jhm.qualified.lead.line.pivot</field>
+        <field name="model">jhm.qualified.lead.line</field>
+        <field name="arch" type="xml">
+            <!-- Y-axis rows: Salesperson, Probability, Create Month -->
+            <pivot string="Qualified Lead Report" disable_linking="True">
+                <field name="user_id"      type="row"/>
+                <field name="probability"  type="row"/>
+                <field name="create_month" type="row" interval="month"/>
+                <field name="lead_count"   type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_qualified_lead_report" model="ir.actions.act_window">
+        <field name="name">Qualified Lead Report</field>
+        <field name="res_model">jhm.qualified.lead.line</field>
+        <field name="view_mode">pivot</field>
+        <field name="target">current</field>
+        <field name="search_view_id" ref="view_qualified_lead_search"/>
+        <field name="context">{'search_default_this_year': 1}</field>
+    </record>
+
+    <menuitem
+        id="menu_qualified_lead_report"
+        name="Qualified Lead Report"
+        parent="crm.crm_menu_report"
+        action="action_qualified_lead_report"
+        sequence="29"/>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         APPOINTMENT REPORT
+         List view on crm.lead — all opportunities with appointment context
+    ══════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_appointment_report_list" model="ir.ui.view">
+        <field name="name">crm.lead.list.appointment.report</field>
+        <field name="model">crm.lead</field>
+        <field name="arch" type="xml">
+            <list string="Appointment Report" create="false" edit="false" delete="false">
+                <field name="user_id"                    string="Salesperson"/>
+                <field name="contact_name"               string="Contact Name"/>
+                <field name="partner_last_name"          string="Last Name"/>
+                <field name="partner_jhm_lead_source_id" string="Lead Source"/>
+                <field name="partner_last_call_date"     string="Last Call Date"/>
+                <field name="partner_sf_followup_date"   string="Follow Up Date"/>
+                <field name="partner_appointment_date"   string="Appointment Date"/>
+                <field name="jhm_probability"            string="Probability"/>
+                <field name="time_to_close"              string="Time to Close"/>
+                <field name="partner_facing_problems"    string="Facing Problems"/>
+                <field name="partner_appointment_notes"  string="Appointment Notes"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_appointment_report_search" model="ir.ui.view">
+        <field name="name">crm.lead.search.appointment.report</field>
+        <field name="model">crm.lead</field>
+        <field name="arch" type="xml">
+            <search string="Appointment Report">
+                <filter string="Has Appointment" name="has_appointment"
+                        domain="[('partner_appointment_date', '!=', False)]"/>
+                <filter string="This Year" name="appt_this_year"
+                        domain="[('partner_appointment_date', '&gt;=', context_today().strftime('%Y-01-01'))]"/>
+                <separator/>
+                <field name="user_id"                    string="Salesperson"/>
+                <field name="partner_jhm_lead_source_id" string="Lead Source"/>
+                <field name="partner_visa_program_id"    string="Visa Program"/>
+                <separator/>
+                <filter string="Group by Salesperson"      name="group_user" context="{'group_by': 'user_id'}"/>
+                <filter string="Group by Appointment Date" name="group_appt" context="{'group_by': 'partner_appointment_date:month'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_appointment_report" model="ir.actions.act_window">
+        <field name="name">Appointment Report</field>
+        <field name="res_model">crm.lead</field>
+        <field name="view_mode">list</field>
+        <field name="target">current</field>
+        <field name="domain">[('type', '=', 'opportunity'), ('active', '=', True)]</field>
+        <field name="search_view_id" ref="view_appointment_report_search"/>
+        <field name="context">{'search_default_has_appointment': 1}</field>
+        <field name="view_ids" eval="[(5,0,0),(0,0,{'view_mode':'list','view_id':ref('view_appointment_report_list')})]"/>
+    </record>
+
+    <menuitem
+        id="menu_appointment_report"
+        name="Appointment Report"
+        parent="crm.crm_menu_report"
+        action="action_appointment_report"
+        sequence="30"/>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         LEAD TO APPOINTMENT REPORT
+         Pivot: Salesperson + Visa Program (rows) × Appointment Date (cols)
+         Measure: # Appointments
+    ══════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_lead_appointment_search" model="ir.ui.view">
+        <field name="name">jhm.appointment.line.search</field>
+        <field name="model">jhm.appointment.line</field>
+        <field name="arch" type="xml">
+            <search string="Lead to Appointment Report">
+                <filter string="This Year" name="this_year"
+                        domain="[('appointment_date', '&gt;=', context_today().strftime('%Y-01-01'))]"/>
+                <separator/>
+                <field name="user_id"         string="Salesperson"/>
+                <field name="visa_program_id" string="Visa Program"/>
+                <separator/>
+                <filter string="Group by Salesperson"  name="group_user"  context="{'group_by': 'user_id'}"/>
+                <filter string="Group by Visa Program" name="group_visa"  context="{'group_by': 'visa_program_id'}"/>
+                <filter string="Group by Year"         name="group_year"  context="{'group_by': 'appointment_date:year'}"/>
+                <filter string="Group by Month"        name="group_month" context="{'group_by': 'appointment_date:month'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_lead_appointment_pivot" model="ir.ui.view">
+        <field name="name">jhm.appointment.line.pivot</field>
+        <field name="model">jhm.appointment.line</field>
+        <field name="arch" type="xml">
+            <!-- Y-axis: Salesperson, Visa Program | X-axis: Appointment Date -->
+            <pivot string="Lead to Appointment Report" disable_linking="True">
+                <field name="user_id"          type="row"/>
+                <field name="visa_program_id"  type="row"/>
+                <field name="appointment_date" type="col" interval="month"/>
+                <field name="appointment_count" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_lead_appointment_report" model="ir.actions.act_window">
+        <field name="name">Lead to Appointment Report</field>
+        <field name="res_model">jhm.appointment.line</field>
+        <field name="view_mode">pivot</field>
+        <field name="target">current</field>
+        <field name="search_view_id" ref="view_lead_appointment_search"/>
+        <field name="context">{'search_default_this_year': 1}</field>
+    </record>
+
+    <menuitem
+        id="menu_lead_appointment_report"
+        name="Lead to Appointment Report"
+        parent="crm.crm_menu_report"
+        action="action_lead_appointment_report"
+        sequence="31"/>
+
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         FOLLOW UP REPORT
+         Rows: Salesperson, Visa Program, Create Date, Follow Up Date
+         Measure: Count  +  row subtotal (built-in Total column)
+    ══════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_follow_up_report_search" model="ir.ui.view">
+        <field name="name">jhm.follow.up.line.search</field>
+        <field name="model">jhm.follow.up.line</field>
+        <field name="arch" type="xml">
+            <search string="Follow Up Report">
+                <filter string="This Year" name="this_year"
+                        domain="[('followup_date', '&gt;=', context_today().strftime('%Y-01-01'))]"/>
+                <filter string="Has Follow Up Date" name="has_followup"
+                        domain="[('followup_date', '!=', False)]"/>
+                <separator/>
+                <field name="user_id"         string="Salesperson"/>
+                <field name="visa_program_id" string="Visa Program"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_follow_up_report_pivot" model="ir.ui.view">
+        <field name="name">jhm.follow.up.line.pivot</field>
+        <field name="model">jhm.follow.up.line</field>
+        <field name="arch" type="xml">
+            <!-- Rows: Salesperson → Visa Program → Create Date → Follow Up Date | Total = built-in -->
+            <pivot string="Follow Up Report" disable_linking="True">
+                <field name="user_id"         type="row"/>
+                <field name="visa_program_id" type="row"/>
+                <field name="create_date"     type="row" interval="month"/>
+                <field name="followup_date"   type="row" interval="month"/>
+                <field name="lead_count"      type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_follow_up_report" model="ir.actions.act_window">
+        <field name="name">Follow Up Report</field>
+        <field name="res_model">jhm.follow.up.line</field>
+        <field name="view_mode">pivot</field>
+        <field name="target">current</field>
+        <field name="search_view_id" ref="view_follow_up_report_search"/>
+        <field name="context">{'search_default_this_year': 1}</field>
+    </record>
+
+    <menuitem
+        id="menu_follow_up_report"
+        name="Follow Up Report"
+        parent="crm.crm_menu_report"
+        action="action_follow_up_report"
+        sequence="32"/>
+
+</odoo>

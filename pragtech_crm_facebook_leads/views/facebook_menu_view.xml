@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+<!--    <menuitem-->
+<!--        id="fb_social_dashboard_main_menu"-->
+<!--        name="Social Dashboard"-->
+<!--        sequence="9"/>-->
+
+    <menuitem
+        id="social_dashboard_facebook"
+        parent="odoo_lead_forms_ad_integration_hub_crm.social_dashboard_main_menu"
+        name="Facebook Dashboard"
+        sequence="9" />
+<!--    <menuitem-->
+<!--        id="social_dashboard_instagram"-->
+<!--        parent="fb_social_dashboard_main_menu"-->
+<!--        name="Instagram Dashboard"-->
+<!--        sequence="33" />-->
+<!--    <menuitem-->
+<!--        id="social_dashboard_social_configuration_fb"-->
+<!--        parent="fb_social_dashboard_main_menu"-->
+<!--        name="Configuration"-->
+<!--        sequence="35" />-->
+
+    <menuitem
+        id="fb_social_dashboard_social_pages"
+        parent="odoo_lead_forms_ad_integration_hub_crm.social_dashboard_social_configuration"
+        name="Facebook Pages"
+        sequence="12" />
+<!--    <menuitem-->
+<!--        id="fb_social_dashboard_social_media"-->
+<!--        parent="social_dashboard_social_configuration_fb"-->
+<!--        name="Facebook Accounts"-->
+<!--        sequence="36" />-->
+<!--    <menuitem-->
+<!--        id="instagram_social_dashboard_social_account"-->
+<!--        parent="social_dashboard_social_configuration_fb"-->
+<!--        name="Instagram Pages"-->
+<!--        sequence="41" />-->
+
+</data>
+</odoo>

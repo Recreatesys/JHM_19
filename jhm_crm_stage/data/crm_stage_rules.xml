@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Filter crm.stage by the user's currently active company.
+         Stages with no company_id are global (visible everywhere).
+         Stages with a company_id only appear when that company is active. -->
+    <record id="crm_stage_company_rule" model="ir.rule">
+        <field name="name">CRM Stage: company isolation</field>
+        <field name="model_id" ref="crm.model_crm_stage"/>
+        <field name="global" eval="True"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

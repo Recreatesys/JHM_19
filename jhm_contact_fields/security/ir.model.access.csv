@@ -1,0 +1,14 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_jhm_background,jhm.background,model_jhm_background,base.group_user,1,1,1,1
+access_jhm_visa_program,jhm.visa.program,model_jhm_visa_program,base.group_user,1,1,1,1
+access_jhm_nationality,jhm.nationality,model_jhm_nationality,base.group_user,1,1,1,1
+access_jhm_communication_channel,jhm.communication.channel,model_jhm_communication_channel,base.group_user,1,1,1,1
+access_jhm_lead_source,jhm.lead.source,model_jhm_lead_source,base.group_user,1,1,1,1
+access_jhm_co_owner_log,jhm.co.owner.log,model_jhm_co_owner_log,base.group_user,1,1,1,0
+access_jhm_sales_daily_line,jhm.sales.daily.line,model_jhm_sales_daily_line,base.group_user,1,0,0,0
+access_jhm_sales_mtd_line,jhm.sales.mtd.line,model_jhm_sales_mtd_line,base.group_user,1,0,0,0
+access_jhm_lead_performance,jhm.lead.performance.line,model_jhm_lead_performance_line,base.group_user,1,0,0,0
+access_jhm_qualified_lead,jhm.qualified.lead.line,model_jhm_qualified_lead_line,base.group_user,1,0,0,0
+access_jhm_appointment_line,jhm.appointment.line,model_jhm_appointment_line,base.group_user,1,0,0,0
+access_jhm_follow_up_line,jhm.follow.up.line,model_jhm_follow_up_line,base.group_user,1,0,0,0
+access_jhm_sales_channel_line,jhm.sales.channel.line,model_jhm_sales_channel_line,base.group_user,1,0,0,0

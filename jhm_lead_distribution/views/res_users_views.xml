@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Add Skip Auto Assignment to the user preference / form -->
+    <record id="view_users_form_skip_assignment" model="ir.ui.view">
+        <field name="name">res.users.form.skip.assignment</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='other_preferences']" position="after">
+                <group string="Lead Assignment" name="lead_assignment_prefs">
+                    <field name="skip_auto_assignment"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

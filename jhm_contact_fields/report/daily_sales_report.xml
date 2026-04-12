@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Report action ──────────────────────────────────────────────────── -->
+    <record id="action_report_jhm_daily_sales" model="ir.actions.report">
+        <field name="name">Daily Sales Report</field>
+        <field name="model">jhm.daily.sales.report</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">jhm_contact_fields.report_daily_sales_template</field>
+        <field name="report_file">jhm_contact_fields.report_daily_sales_template</field>
+    </record>
+
+    <!-- ── QWeb template ─────────────────────────────────────────────────── -->
+    <template id="report_daily_sales_template">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <div class="page">
+
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        <h2 class="mb-1">Daily Sales Report</h2>
+                        <p class="text-muted mb-0">
+                            <t t-esc="report_data['period']"/>
+                        </p>
+                    </div>
+
+                    <!-- No data message -->
+                    <t t-if="not report_data.get('salespersons')">
+                        <div class="alert alert-info text-center">
+                            No active opportunities found for the selected period.
+                        </div>
+                    </t>
+
+                    <!-- One table per salesperson -->
+                    <t t-foreach="report_data.get('salespersons', [])" t-as="sp">
+                        <div class="mb-5">
+                            <h4 class="border-bottom border-dark pb-1 mb-2">
+                                <t t-esc="sp['name']"/>
+                            </h4>
+                            <table class="table table-sm table-bordered"
+                                   style="font-size:11px; table-layout:auto;">
+                                <thead>
+                                    <tr style="background:#343a40; color:#fff;">
+                                        <th style="width:220px; vertical-align:middle;">Metric</th>
+                                        <t t-foreach="report_data['date_headers']" t-as="dh">
+                                            <th class="text-center" style="min-width:68px;">
+                                                <div><t t-esc="dh['day']"/></div>
+                                                <div><t t-esc="dh['date']"/></div>
+                                            </th>
+                                        </t>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="sp['metrics']" t-as="metric">
+                                        <tr>
+                                            <td style="background:#f8f9fa; font-weight:600;">
+                                                <t t-esc="metric['label']"/>
+                                            </td>
+                                            <t t-foreach="metric['values']" t-as="val">
+                                                <td class="text-center">
+                                                    <t t-if="metric['is_money']">
+                                                        <t t-esc="'${:,.0f}'.format(val) if val else '-'"/>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <t t-esc="val if val else '-'"/>
+                                                    </t>
+                                                </td>
+                                            </t>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </t>
+
+                </div>
+            </t>
+        </t>
+    </template>
+
+</odoo>

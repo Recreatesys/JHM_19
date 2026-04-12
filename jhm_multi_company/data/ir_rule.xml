@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Override the default partner rule to enforce company isolation.
+         Uses user.company_ids (all allowed companies) so that multi-company
+         admins can access records across companies they manage, while
+         single-company users stay isolated to their own company.
+         Records with no company_id (system/shared records) are visible to all. -->
+    <record id="base.res_partner_rule" model="ir.rule">
+        <field name="domain_force">['|', ('company_id', 'in', user.company_ids.ids), ('company_id', '=', False)]</field>
+    </record>
+</odoo>

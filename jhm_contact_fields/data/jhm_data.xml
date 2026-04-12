@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- ─── Background ────────────────────────────────────────────────── -->
+    <record id="bg_high_net_worth" model="jhm.background"><field name="name">High Net Worth</field></record>
+    <record id="bg_entrepreneur" model="jhm.background"><field name="name">Entrepreneur</field></record>
+    <record id="bg_top_of_field" model="jhm.background"><field name="name">Top-of-field</field></record>
+    <record id="bg_national_research" model="jhm.background"><field name="name">Recipients of national research grants</field></record>
+    <record id="bg_phd" model="jhm.background"><field name="name">Holders of PhDs</field></record>
+    <record id="bg_critical_tech" model="jhm.background"><field name="name">Critical Technologies</field></record>
+    <record id="bg_health" model="jhm.background"><field name="name">Health Industries</field></record>
+    <record id="bg_renewables" model="jhm.background"><field name="name">Renewables and low emission technologies</field></record>
+    <record id="bg_agri" model="jhm.background"><field name="name">Agri-food and AgTech</field></record>
+    <record id="bg_defence" model="jhm.background"><field name="name">Defence Capabilities and Space</field></record>
+    <record id="bg_education" model="jhm.background"><field name="name">Education</field></record>
+    <record id="bg_financial" model="jhm.background"><field name="name">Financial Services and FinTech</field></record>
+    <record id="bg_infrastructure" model="jhm.background"><field name="name">Infrastructure and Transport</field></record>
+    <record id="bg_arts" model="jhm.background"><field name="name">Arts, entertainment and recreation</field></record>
+    <record id="bg_others" model="jhm.background"><field name="name">Others</field></record>
+
+    <!-- ─── Nationality ───────────────────────────────────────────────── -->
+    <record id="nat_hong_kong" model="jhm.nationality"><field name="name">Hong Kong</field></record>
+    <record id="nat_china" model="jhm.nationality"><field name="name">China</field></record>
+    <record id="nat_taiwan" model="jhm.nationality"><field name="name">Taiwan</field></record>
+    <record id="nat_usa" model="jhm.nationality"><field name="name">USA</field></record>
+    <record id="nat_hk" model="jhm.nationality"><field name="name">HK</field></record>
+    <record id="nat_tw" model="jhm.nationality"><field name="name">TW</field></record>
+    <record id="nat_ca" model="jhm.nationality"><field name="name">CA</field></record>
+
+    <!-- ─── Communication Channel ─────────────────────────────────────── -->
+    <record id="ch_whatsapp" model="jhm.communication.channel"><field name="name">Whatsapp</field></record>
+    <record id="ch_line" model="jhm.communication.channel"><field name="name">Line</field></record>
+    <record id="ch_wechat" model="jhm.communication.channel"><field name="name">Wechat</field></record>
+
+    <!-- ─── Lead Source ───────────────────────────────────────────────── -->
+    <record id="ls_opp_to_lead" model="jhm.lead.source"><field name="name">Opportunity to Lead</field></record>
+    <record id="ls_bp_referral" model="jhm.lead.source"><field name="name">Business Partner Referral</field></record>
+    <record id="ls_client_referral" model="jhm.lead.source"><field name="name">Client Referral</field></record>
+    <record id="ls_staff_sell" model="jhm.lead.source"><field name="name">Staff &amp; Sell</field></record>
+    <record id="ls_google_form" model="jhm.lead.source"><field name="name">Google Form</field></record>
+    <record id="ls_google" model="jhm.lead.source"><field name="name">Google</field></record>
+    <record id="ls_whatsapp" model="jhm.lead.source"><field name="name">WhatsApp</field></record>
+    <record id="ls_web_form" model="jhm.lead.source"><field name="name">Web Form</field></record>
+    <record id="ls_facebook" model="jhm.lead.source"><field name="name">Facebook</field></record>
+    <record id="ls_ig" model="jhm.lead.source"><field name="name">IG</field></record>
+    <record id="ls_event" model="jhm.lead.source"><field name="name">Event</field></record>
+    <record id="ls_xiaohongshu" model="jhm.lead.source"><field name="name">小紅書</field></record>
+    <record id="ls_wechat" model="jhm.lead.source"><field name="name">微信</field></record>
+    <record id="ls_douyin" model="jhm.lead.source"><field name="name">抖音</field></record>
+    <record id="ls_other" model="jhm.lead.source"><field name="name">Other</field></record>
+    <record id="ls_tbd" model="jhm.lead.source"><field name="name">TBD</field></record>
+    <record id="ls_yahoo" model="jhm.lead.source"><field name="name">Yahoo</field></record>
+    <record id="ls_media" model="jhm.lead.source"><field name="name">Media</field></record>
+    <record id="ls_webchat" model="jhm.lead.source"><field name="name">Webchat</field></record>
+    <record id="ls_youtube" model="jhm.lead.source"><field name="name">Youtube</field></record>
+    <record id="ls_email" model="jhm.lead.source"><field name="name">E-mail</field></record>
+    <record id="ls_seminar" model="jhm.lead.source"><field name="name">Seminar</field></record>
+
+    <!-- ─── Visa Programs ─────────────────────────────────────────────── -->
+    <record id="vp_au_niv" model="jhm.visa.program"><field name="name">AU NIV</field></record>
+    <record id="vp_au_niv_p2" model="jhm.visa.program"><field name="name">AU NIV (P2)</field></record>
+    <record id="vp_au_niv_p2_emp" model="jhm.visa.program"><field name="name">AU NIV (P2 Empowered)</field></record>
+    <record id="vp_au_888" model="jhm.visa.program"><field name="name">AU 888</field></record>
+    <record id="vp_au_186" model="jhm.visa.program"><field name="name">AU 186</field></record>
+    <record id="vp_au_482" model="jhm.visa.program"><field name="name">AU 482</field></record>
+    <record id="vp_au_482_sbs" model="jhm.visa.program"><field name="name">AU 482 (SBS)</field></record>
+    <record id="vp_au_482_self" model="jhm.visa.program"><field name="name">AU 482 (self employed)</field></record>
+    <record id="vp_au_skilled" model="jhm.visa.program"><field name="name">AU SKILLED</field></record>
+    <record id="vp_au_mint" model="jhm.visa.program"><field name="name">AU MINT</field></record>
+    <record id="vp_au_485" model="jhm.visa.program"><field name="name">AU 485</field></record>
+    <record id="vp_au_500" model="jhm.visa.program"><field name="name">AU 500 (student visa)</field></record>
+    <record id="vp_au_hk_189" model="jhm.visa.program"><field name="name">AU HK STREAM (189)</field></record>
+    <record id="vp_au_hk_191" model="jhm.visa.program"><field name="name">AU HK STREAM (191)</field></record>
+    <record id="vp_au_461" model="jhm.visa.program"><field name="name">AU 461 (NZ citizen)</field></record>
+    <record id="vp_au_family" model="jhm.visa.program"><field name="name">AU FAMILY</field></record>
+    <record id="vp_au_citizenship" model="jhm.visa.program"><field name="name">AU CITIZENSHIP</field></record>
+    <record id="vp_au_rrv" model="jhm.visa.program"><field name="name">AU RRV</field></record>
+    <record id="vp_au_600" model="jhm.visa.program"><field name="name">AU 600 (visitor)</field></record>
+    <record id="vp_ca_suv" model="jhm.visa.program"><field name="name">CA SUV</field></record>
+    <record id="vp_ca_ict" model="jhm.visa.program"><field name="name">CA ICT</field></record>
+    <record id="vp_ca_pnp" model="jhm.visa.program"><field name="name">CA PNP (entrepreneur)</field></record>
+    <record id="vp_ca_skilled" model="jhm.visa.program"><field name="name">CA SKILLED</field></record>
+    <record id="vp_ca_stream_a" model="jhm.visa.program"><field name="name">CA STREAM A</field></record>
+    <record id="vp_ca_study" model="jhm.visa.program"><field name="name">CA STUDY PERMIT</field></record>
+    <record id="vp_ca_stream_b" model="jhm.visa.program"><field name="name">CA STREAM B</field></record>
+    <record id="vp_ca_family" model="jhm.visa.program"><field name="name">CA FAMILY</field></record>
+    <record id="vp_ca_citizenship" model="jhm.visa.program"><field name="name">CA CITIZENSHIP</field></record>
+    <record id="vp_ca_eta" model="jhm.visa.program"><field name="name">CA ETA</field></record>
+    <record id="vp_ca_rehab" model="jhm.visa.program"><field name="name">CA REHABILITATION</field></record>
+    <record id="vp_un_investor" model="jhm.visa.program"><field name="name">UN INVESTOR</field></record>
+    <record id="vp_uk_gt" model="jhm.visa.program"><field name="name">UK GLOBAL TALENT</field></record>
+    <record id="vp_uk_bno" model="jhm.visa.program"><field name="name">UK BNO</field></record>
+    <record id="vp_uk_bno_app" model="jhm.visa.program"><field name="name">UK BNO (application)</field></record>
+    <record id="vp_uk_ilr" model="jhm.visa.program"><field name="name">UK ILR</field></record>
+    <record id="vp_uk_family" model="jhm.visa.program"><field name="name">UK FAMILY</field></record>
+    <record id="vp_uk_citizenship" model="jhm.visa.program"><field name="name">UK CITIZENSHIP</field></record>
+    <record id="vp_us_eb5" model="jhm.visa.program"><field name="name">US EB-5</field></record>
+    <record id="vp_us_eb1a" model="jhm.visa.program"><field name="name">US EB-1A</field></record>
+    <record id="vp_us_eb2" model="jhm.visa.program"><field name="name">US EB-2</field></record>
+    <record id="vp_us_eb3" model="jhm.visa.program"><field name="name">US EB-3</field></record>
+    <record id="vp_us_family" model="jhm.visa.program"><field name="name">US FAMILY</field></record>
+    <record id="vp_nz_aip_bal" model="jhm.visa.program"><field name="name">NZ AIP (balanced)</field></record>
+    <record id="vp_nz_aip_grow" model="jhm.visa.program"><field name="name">NZ AIP (growth)</field></record>
+    <record id="vp_nz_arv" model="jhm.visa.program"><field name="name">NZ ARV</field></record>
+    <record id="vp_nz_biv" model="jhm.visa.program"><field name="name">NZ BIV</field></record>
+    <record id="vp_nz_skilled" model="jhm.visa.program"><field name="name">NZ SKILLED</field></record>
+    <record id="vp_nz_green" model="jhm.visa.program"><field name="name">NZ GREEN LIST</field></record>
+    <record id="vp_nz_family" model="jhm.visa.program"><field name="name">NZ FAMILY</field></record>
+    <record id="vp_ireland_don" model="jhm.visa.program"><field name="name">IRELAND DONATION</field></record>
+    <record id="vp_portugal_fund" model="jhm.visa.program"><field name="name">PORTUGAL FUND</field></record>
+    <record id="vp_portugal_cit" model="jhm.visa.program"><field name="name">PORTUGAL CITIZENSHIP BY DECENT</field></record>
+    <record id="vp_malta" model="jhm.visa.program"><field name="name">MALTA</field></record>
+    <record id="vp_greece" model="jhm.visa.program"><field name="name">GREECE</field></record>
+    <record id="vp_bulgaria" model="jhm.visa.program"><field name="name">BULGARIA</field></record>
+    <record id="vp_latvia" model="jhm.visa.program"><field name="name">LATVIA</field></record>
+    <record id="vp_turkey_prop" model="jhm.visa.program"><field name="name">TURKEY (property)</field></record>
+    <record id="vp_turkey_fund" model="jhm.visa.program"><field name="name">TURKEY (fund)</field></record>
+    <record id="vp_turkey_dep" model="jhm.visa.program"><field name="name">TURKEY (deposit)</field></record>
+    <record id="vp_nauru" model="jhm.visa.program"><field name="name">NAURU</field></record>
+    <record id="vp_vanuatu" model="jhm.visa.program"><field name="name">VANUATU</field></record>
+    <record id="vp_antigua_prop" model="jhm.visa.program"><field name="name">ANTIGUA (property)</field></record>
+    <record id="vp_antigua_don" model="jhm.visa.program"><field name="name">ANTIGUA (donation)</field></record>
+    <record id="vp_dominica" model="jhm.visa.program"><field name="name">DOMINICA</field></record>
+    <record id="vp_grenada_prop" model="jhm.visa.program"><field name="name">GRENADA (property)</field></record>
+    <record id="vp_grenada_don" model="jhm.visa.program"><field name="name">GRENADA (donation)</field></record>
+    <record id="vp_st_kitts" model="jhm.visa.program"><field name="name">ST KITTS</field></record>
+    <record id="vp_hk_cip" model="jhm.visa.program"><field name="name">HK 資本投資者入境計劃</field></record>
+    <record id="vp_hk_top_a" model="jhm.visa.program"><field name="name">HK 高端人才通行證(A類)計劃</field></record>
+    <record id="vp_hk_top_a_renew" model="jhm.visa.program"><field name="name">HK 高才(A類)續簽</field></record>
+    <record id="vp_hk_top_b" model="jhm.visa.program"><field name="name">HK 高端人才通行證(B類)計劃</field></record>
+    <record id="vp_hk_top_b_renew" model="jhm.visa.program"><field name="name">HK 高才(B類)續簽</field></record>
+    <record id="vp_hk_top_c" model="jhm.visa.program"><field name="name">HK 高端人才通行證(C類)計劃</field></record>
+    <record id="vp_hk_top_c_renew" model="jhm.visa.program"><field name="name">HK 高才(C類)續簽</field></record>
+    <record id="vp_hk_qmas_mainland" model="jhm.visa.program"><field name="name">HK 輸入內地人材計劃</field></record>
+    <record id="vp_hk_gep" model="jhm.visa.program"><field name="name">HK GEP</field></record>
+    <record id="vp_hk_qmas" model="jhm.visa.program"><field name="name">HK 優秀人才入境計劃</field></record>
+    <record id="vp_hk_labour" model="jhm.visa.program"><field name="name">HK 輸入勞工計劃</field></record>
+    <record id="vp_hk_study" model="jhm.visa.program"><field name="name">HK 留學</field></record>
+    <record id="vp_hk_pr" model="jhm.visa.program"><field name="name">HK 永居</field></record>
+    <record id="vp_hk_dependent" model="jhm.visa.program"><field name="name">HK 受養人來港居留簽證</field></record>
+    <record id="vp_jp_hsp_mgmt" model="jhm.visa.program"><field name="name">JP 高度人才 (經營管理)</field></record>
+    <record id="vp_jp_hsp_tech" model="jhm.visa.program"><field name="name">JP 高度人才 (技術)</field></record>
+    <record id="vp_jp_biz" model="jhm.visa.program"><field name="name">JP 經營者管理</field></record>
+    <record id="vp_jp_suv" model="jhm.visa.program"><field name="name">JP SUV 4+1</field></record>
+    <record id="vp_sg_ep" model="jhm.visa.program"><field name="name">SG EP</field></record>
+    <record id="vp_my_mm2h" model="jhm.visa.program"><field name="name">MY MM2H</field></record>
+    <record id="vp_dubai" model="jhm.visa.program"><field name="name">DUBAI</field></record>
+    <record id="vp_other_visas" model="jhm.visa.program"><field name="name">OTHER VISAS</field></record>
+    <record id="vp_tbd" model="jhm.visa.program"><field name="name">TBD</field></record>
+    <record id="vp_tbd_failed" model="jhm.visa.program"><field name="name">TBD (failed to contact)</field></record>
+    <record id="vp_non_imm" model="jhm.visa.program"><field name="name">NON-IMMIGRATION</field></record>
+    <record id="vp_property" model="jhm.visa.program"><field name="name">PROPERTY</field></record>
+    <record id="vp_education" model="jhm.visa.program"><field name="name">EDUCATION</field></record>
+    <record id="vp_tax" model="jhm.visa.program"><field name="name">TAX</field></record>
+    <record id="vp_insurance" model="jhm.visa.program"><field name="name">INSURANCE</field></record>
+    <record id="vp_ireland_inv" model="jhm.visa.program"><field name="name">IRELAND INVESTMENT</field></record>
+    <record id="vp_ca_business" model="jhm.visa.program"><field name="name">CA BUSINESS</field></record>
+    <record id="vp_au_188b" model="jhm.visa.program"><field name="name">AU 188B</field></record>
+    <record id="vp_ca_suv_team" model="jhm.visa.program"><field name="name">CA SUV (TEAM)</field></record>
+    <record id="vp_au_188c" model="jhm.visa.program"><field name="name">AU 188C</field></record>
+    <record id="vp_au_188a" model="jhm.visa.program"><field name="name">AU 188A</field></record>
+    <record id="vp_malaysia" model="jhm.visa.program"><field name="name">MALAYSIA</field></record>
+    <record id="vp_ca_qc_inv" model="jhm.visa.program"><field name="name">CA QUEBEC INVESTMENT</field></record>
+    <record id="vp_au_485_stream" model="jhm.visa.program"><field name="name">AU 485 STREAM</field></record>
+    <record id="vp_nz_investor2" model="jhm.visa.program"><field name="name">NZ INVESTOR 2</field></record>
+    <record id="vp_portugal_others" model="jhm.visa.program"><field name="name">PORTUGAL OTHERS</field></record>
+    <record id="vp_ca_self_emp" model="jhm.visa.program"><field name="name">CA SELF-EMPLOYED</field></record>
+    <record id="vp_au_gti" model="jhm.visa.program"><field name="name">AU GTI</field></record>
+    <record id="vp_au_482_stream" model="jhm.visa.program"><field name="name">AU 482 STREAM</field></record>
+    <record id="vp_uk_t1_ent" model="jhm.visa.program"><field name="name">UK TIER-1 ENT</field></record>
+    <record id="vp_uk_business" model="jhm.visa.program"><field name="name">UK BUSINESS</field></record>
+    <record id="vp_ca_aip" model="jhm.visa.program"><field name="name">CA AIP</field></record>
+    <record id="vp_uk_bno_application" model="jhm.visa.program"><field name="name">UK BNO APPLICATION</field></record>
+    <record id="vp_uk_t1_investor" model="jhm.visa.program"><field name="name">UK T1 INVESTOR</field></record>
+    <record id="vp_nz_cpvv" model="jhm.visa.program"><field name="name">NZ CRITICAL PURPOSE VISITOR</field></record>
+    <record id="vp_ca_owp" model="jhm.visa.program"><field name="name">CA OPEN WORK PERMIT</field></record>
+    <record id="vp_au_188e" model="jhm.visa.program"><field name="name">AU 188E</field></record>
+    <record id="vp_ca_pnp2" model="jhm.visa.program"><field name="name">CA PNP</field></record>
+    <record id="vp_nz_aip_growth2" model="jhm.visa.program"><field name="name">NZ ACTIVE INVESTOR PLUS VISA (GROWTH)</field></record>
+    <record id="vp_ca_suv_consulting" model="jhm.visa.program"><field name="name">CA SUV CONSULTING</field></record>
+    <record id="vp_nz_aip_balanced2" model="jhm.visa.program"><field name="name">NZ ACTIVE INVESTOR PLUS VISA (BALANCED)</field></record>
+    <record id="vp_ca_stream_b_lmia" model="jhm.visa.program"><field name="name">CA STREAM B (LMIA)</field></record>
+    <record id="vp_ca_aos" model="jhm.visa.program"><field name="name">CA AOS</field></record>
+    <record id="vp_st_kitts_don" model="jhm.visa.program"><field name="name">ST KITTS DONATION</field></record>
+    <record id="vp_nz_investor" model="jhm.visa.program"><field name="name">NZ INVESTOR</field></record>
+    <record id="vp_au_132b" model="jhm.visa.program"><field name="name">AU 132B</field></record>
+    <record id="vp_au_188c_ext" model="jhm.visa.program"><field name="name">AU 188C EXTENSION STREAM</field></record>
+    <record id="vp_us_l1a" model="jhm.visa.program"><field name="name">US L-1A</field></record>
+
+</odoo>

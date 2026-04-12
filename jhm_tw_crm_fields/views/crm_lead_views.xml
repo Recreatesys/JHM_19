@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="crm_lead_view_form_tw_fields" model="ir.ui.view">
+        <field name="name">crm.lead.form.tw.fields</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//notebook" position="before">
+                <field name="is_tw_company" invisible="1"/>
+
+                <!-- TW-only section: only visible for JHM Taiwan opportunities -->
+                <group string="TW Follow-up" invisible="not is_tw_company">
+                    <group string="Follow-up Notes">
+                        <field name="tw_followup_1" string="1st Follow-up" nolabel="0"/>
+                        <field name="tw_followup_2" string="2nd Follow-up" nolabel="0"/>
+                        <field name="tw_followup_3" string="3rd Follow-up" nolabel="0"/>
+                        <field name="tw_followup_4" string="4th Follow-up" nolabel="0"/>
+                    </group>
+                    <group string="Status">
+                        <field name="tw_call_connected"/>
+                        <field name="tw_added_on_line" string="Added on LINE"/>
+                        <field name="tw_email_sent"/>
+                        <field name="tw_group_created"/>
+                        <field name="tw_preferred_contact_time"/>
+                    </group>
+                </group>
+
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

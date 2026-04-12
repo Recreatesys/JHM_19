@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="crm_lead_view_form_jhm_fields" model="ir.ui.view">
+        <field name="name">crm.lead.form.jhm.fields</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Documents smart button -->
+            <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
+                <button type="object"
+                        name="action_open_jhm_documents"
+                        class="oe_stat_button"
+                        icon="fa-file"
+                        invisible="jhm_documents_count == 0">
+                    <field name="jhm_documents_count" widget="statinfo" string="Documents"/>
+                </button>
+            </xpath>
+
+            <!-- Replace free-text probability input with selection field -->
+            <!-- Hide the original float input and % sign -->
+            <xpath expr="//div[@id='probability']/field[@name='probability']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//div[@id='probability']/span" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <!-- Insert selection field inside the same div -->
+            <xpath expr="//div[@id='probability']/field[@name='probability']" position="before">
+                <field name="jhm_probability"
+                       class="oe_inline"
+                       readonly="won_status != 'pending'"/>
+            </xpath>
+
+            <!-- Fix email_from label — base view hardcodes string="Email", override to correct label -->
+            <xpath expr="//field[@name='email_from'][@widget='email']" position="attributes">
+                <attribute name="string">Main Applicant Email</attribute>
+            </xpath>
+
+            <!-- Co-owner, Process Team, Process 2, Inactive Lead — after user_id in opportunity group -->
+            <xpath expr="//group[@invisible=&quot;type == 'lead'&quot;]/field[@name='user_id']" position="after">
+                <field name="co_owner_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                <field name="process_team_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                <field name="process_2_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                <field name="inactive_lead" widget="boolean_toggle"/>
+                <field name="time_to_close"/>
+            </xpath>
+
+            <!-- Insert JHM fields in the main sheet area, before the notebook -->
+            <!-- All fields are related to the linked contact (two-way sync) -->
+            <xpath expr="//notebook" position="before">
+
+                <group string="JHM Information">
+                    <group string="Spouse">
+                        <field name="partner_spouse_name" string="Spouse Name"/>
+                        <field name="partner_spouse_phone" string="Spouse Phone"/>
+                        <field name="partner_spouse_email" string="Spouse Email"/>
+                    </group>
+                    <group string="Profile">
+                        <field name="partner_gender" string="Gender"/>
+                        <field name="partner_client_nationality_id" string="Client's Nationality"/>
+                        <field name="partner_jhm_line_id" string="Line ID"/>
+                        <field name="partner_communication_channel_id" string="Communication Channel"/>
+                        <field name="partner_b2b_engagement" string="B2B Engagement"/>
+                        <field name="partner_background_id" string="Background"/>
+                        <field name="partner_immigration_country" string="Immigration Country"/>
+                    </group>
+                    <group string="Case">
+                        <field name="partner_visa_program_id" string="Visa Program"/>
+                        <field name="partner_previous_visa_program_id" string="Previous Visa Program"/>
+                        <field name="partner_jhm_lead_source_id" string="Lead Source"/>
+                        <field name="partner_source_details" string="Source Details"/>
+                    </group>
+                </group>
+
+                <group>
+                    <group string="Financial">
+                        <field name="partner_commission" string="Commission"/>
+                        <field name="partner_migration_budget" string="Migration Budget"/>
+                        <field name="partner_facing_problems" string="Facing Problems"/>
+                        <field name="partner_consultation_fee_paid" string="Consultation Fee Paid"/>
+                    </group>
+                    <group string="Dates">
+                        <field name="partner_sf_creation_date" string="SF Creation Date"/>
+                        <field name="partner_appointment_date" string="Appointment Date"/>
+                        <field name="partner_appointment_notes" string="Appointment Notes"/>
+                        <field name="partner_last_call_date" string="Last Call Date"/>
+                        <field name="partner_sf_followup_date" string="SF Followup Date"/>
+                    </group>
+                </group>
+
+                <separator string="Chat Log"/>
+                <field name="partner_chat_log" nolabel="1" placeholder="Chat log..." colspan="2"/>
+
+                <separator string="Description"/>
+                <field name="partner_jhm_description" nolabel="1" placeholder="Description..." colspan="2"/>
+
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- ── Forecast pivot: add Subtotal measure ─────────────────────────── -->
+    <record id="crm_lead_view_forecast_subtotal" model="ir.ui.view">
+        <field name="name">crm.lead.forecast.subtotal</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_pivot_forecast"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='prorated_revenue']" position="after">
+                <field name="expected_revenue" type="measure"/>
+                <field name="forecast_row_total" type="measure"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ── Server action: batch create document folders for opportunities ── -->
+    <record id="action_crm_lead_create_document_folders" model="ir.actions.server">
+        <field name="name">Create Document Folders</field>
+        <field name="model_id" ref="crm.model_crm_lead"/>
+        <field name="binding_model_id" ref="crm.model_crm_lead"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_batch_create_document_folders()</field>
+    </record>
+
+    <!-- ── Quick-create opportunity form ────────────────────────────────── -->
+    <record id="jhm_quick_create_opportunity_form" model="ir.ui.view">
+        <field name="name">crm.lead.form.quick_create.jhm</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.quick_create_opportunity_form"/>
+        <field name="arch" type="xml">
+            <!-- Remove Company row -->
+            <xpath expr="//div[field[@name='commercial_partner_id']]" position="replace"/>
+            <!-- Remove Email row -->
+            <xpath expr="//div[field[@name='email_from']]" position="replace"/>
+            <!-- Remove Expected Revenue row -->
+            <xpath expr="//div[div[field[@name='expected_revenue']]]" position="replace"/>
+
+            <!-- Make name field read-only hint (auto-generated) -->
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="placeholder">Auto-generated from name + visa + country</attribute>
+                <attribute name="readonly">0</attribute>
+            </xpath>
+
+            <!-- After phone, add Immigration Country, Visa Program, Communication Channel -->
+            <xpath expr="//div[field[@name='phone']]" position="after">
+                <div class="d-flex align-items-center" colspan="2">
+                    <i class="fa fa-globe" title="Immigration Country"/>
+                    <field name="partner_immigration_country" nolabel="1"
+                           placeholder="Immigration Country" class="o_field_highlight w-100 mb-0"/>
+                </div>
+                <div class="d-flex align-items-center" colspan="2">
+                    <i class="fa fa-id-card" title="Visa Program"/>
+                    <field name="partner_visa_program_id" nolabel="1"
+                           placeholder="Visa Program" class="o_field_highlight w-100 mb-0"
+                           options="{'no_create': True}"/>
+                </div>
+                <div class="d-flex align-items-center" colspan="2">
+                    <i class="fa fa-comments" title="Communication Channel"/>
+                    <field name="partner_communication_channel_id" nolabel="1"
+                           placeholder="Communication Channel" class="o_field_highlight w-100 mb-0"
+                           options="{'no_create': True}"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ── Kanban card override ──────────────────────────────────────────── -->
+    <record id="jhm_crm_kanban_view" model="ir.ui.view">
+        <field name="name">crm.lead.kanban.jhm</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_case_kanban_view_leads"/>
+        <field name="arch" type="xml">
+            <!-- Load extra fields needed on the card -->
+            <xpath expr="//field[@name='stage_id']" position="after">
+                <field name="partner_immigration_country"/>
+                <field name="partner_visa_program_id"/>
+                <field name="partner_communication_channel_id"/>
+                <field name="phone"/>
+            </xpath>
+
+            <!-- Hide expected revenue block -->
+            <xpath expr="//t[@t-name='card']//div[hasclass('o_kanban_card_crm_lead_revenue')]" position="attributes">
+                <attribute name="t-if">false</attribute>
+            </xpath>
+
+            <!-- Replace contact line (partner_id + contact_name + partner_name) with our version -->
+            <xpath expr="//t[@t-name='card']/div[hasclass('d-flex')][field[@name='partner_id']]" position="replace">
+                <!-- Contact with avatar -->
+                <div class="d-flex" invisible="not partner_id">
+                    <field name="partner_id" widget="many2one_avatar" class="text-truncate" readonly="1" options="{'no_create': 1, 'no_open': 1}"/>
+                    <field name="partner_id" class="ms-2 text-truncate"/>
+                </div>
+                <field name="contact_name" invisible="partner_id"/>
+                <!-- Phone -->
+                <div t-if="record.phone.raw_value" class="d-flex align-items-center gap-1">
+                    <i class="fa fa-phone text-muted"/>
+                    <field name="phone" class="text-truncate"/>
+                </div>
+                <!-- Immigration Country -->
+                <div t-if="record.partner_immigration_country.raw_value" class="d-flex align-items-center gap-1">
+                    <i class="fa fa-globe text-muted"/>
+                    <field name="partner_immigration_country" class="text-truncate"/>
+                </div>
+                <!-- Visa Program -->
+                <div t-if="record.partner_visa_program_id.raw_value" class="d-flex align-items-center gap-1">
+                    <i class="fa fa-id-card text-muted"/>
+                    <field name="partner_visa_program_id" class="text-truncate"/>
+                </div>
+                <!-- Communication Channel -->
+                <div t-if="record.partner_communication_channel_id.raw_value" class="d-flex align-items-center gap-1">
+                    <i class="fa fa-comments text-muted"/>
+                    <field name="partner_communication_channel_id" class="text-truncate"/>
+                </div>
+            </xpath>
+
+            <!-- Remove standalone contact_name and partner_name fallback lines (now included above) -->
+            <xpath expr="//t[@t-name='card']/field[@name='contact_name']" position="replace"/>
+            <xpath expr="//t[@t-name='card']/field[@name='partner_name']" position="replace"/>
+        </field>
+    </record>
+</odoo>

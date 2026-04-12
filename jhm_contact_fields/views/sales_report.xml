@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── Search view ─────────────────────────────────────────────────── -->
+    <record id="view_sales_report_search" model="ir.ui.view">
+        <field name="name">crm.lead.sales.report.search</field>
+        <field name="model">crm.lead</field>
+        <field name="arch" type="xml">
+            <search string="Sales Report">
+                <filter string="This Year" name="this_year"
+                        domain="[('create_date', '&gt;=', context_today().strftime('%Y-01-01'))]"/>
+                <separator/>
+                <field name="name"                       string="Opportunity Name"/>
+                <field name="partner_id"                 string="Contact Name"/>
+                <field name="user_id"                    string="Salesperson"/>
+                <field name="partner_jhm_lead_source_id" string="Lead Source"/>
+                <field name="partner_visa_program_id"    string="Visa Program"/>
+                <separator/>
+                <filter string="Group by Salesperson"  name="group_user" context="{'group_by': 'user_id'}"/>
+                <filter string="Group by Visa Program" name="group_visa" context="{'group_by': 'partner_visa_program_id'}"/>
+                <filter string="Group by Lead Source"  name="group_source" context="{'group_by': 'partner_jhm_lead_source_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ── List view ───────────────────────────────────────────────────── -->
+    <record id="view_sales_report_list" model="ir.ui.view">
+        <field name="name">crm.lead.sales.report.list</field>
+        <field name="model">crm.lead</field>
+        <field name="arch" type="xml">
+            <list string="Sales Report"
+                  create="false" delete="false" edit="false"
+                  default_order="create_date desc">
+
+                <field name="name"
+                       string="Opportunity Name"
+                       optional="show"/>
+                <field name="partner_id"
+                       string="Contact Name"
+                       optional="show"/>
+                <field name="user_id"
+                       string="Salesperson"
+                       optional="show"/>
+                <field name="partner_jhm_lead_source_id"
+                       string="Lead Source"
+                       optional="show"/>
+                <field name="partner_visa_program_id"
+                       string="Visa Program"
+                       optional="show"/>
+                <field name="quotation_amount"
+                       string="Quotation Amount"
+                       widget="monetary"
+                       options="{'currency_field': 'company_currency'}"
+                       sum="Total Quotation"
+                       optional="show"/>
+                <field name="sale_order_amount"
+                       string="Sales Order Amount"
+                       widget="monetary"
+                       options="{'currency_field': 'company_currency'}"
+                       sum="Total Sales Order"
+                       optional="show"/>
+                <field name="invoiced_amount"
+                       string="Invoiced Amount"
+                       widget="monetary"
+                       options="{'currency_field': 'company_currency'}"
+                       sum="Total Invoiced"
+                       optional="show"/>
+                <field name="outstanding_balance_amount"
+                       string="Outstanding Balance Amount"
+                       widget="monetary"
+                       options="{'currency_field': 'company_currency'}"
+                       sum="Total Outstanding"
+                       optional="show"/>
+                <field name="date_closed"
+                       string="Close Date"
+                       optional="show"/>
+                <field name="create_date"
+                       string="Create Date"
+                       optional="show"/>
+                <field name="partner_sf_creation_date"
+                       string="SF Create Date"
+                       optional="show"/>
+
+                <!-- Hidden currency field required for monetary widget -->
+                <field name="company_currency" column_invisible="1"/>
+
+            </list>
+        </field>
+    </record>
+
+    <!-- ── Window action ───────────────────────────────────────────────── -->
+    <record id="action_sales_report" model="ir.actions.act_window">
+        <field name="name">Sales Report</field>
+        <field name="res_model">crm.lead</field>
+        <field name="view_mode">list</field>
+        <field name="target">current</field>
+        <field name="domain">[('type', '=', 'opportunity'), ('active', '=', True)]</field>
+        <field name="search_view_id" ref="view_sales_report_search"/>
+        <field name="context">{'search_default_this_year': 1}</field>
+        <field name="view_ids" eval="[(5,0,0),(0,0,{'view_mode':'list','view_id':ref('view_sales_report_list')})]"/>
+    </record>
+
+    <!-- ── CRM Reporting menu ──────────────────────────────────────────── -->
+    <menuitem
+        id="menu_sales_report"
+        name="Sales Report"
+        parent="crm.crm_menu_report"
+        action="action_sales_report"
+        sequence="26"/>
+
+</odoo>

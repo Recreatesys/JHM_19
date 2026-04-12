@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ── Server action: batch create document folders for contacts ── -->
+    <record id="action_partner_create_document_folders" model="ir.actions.server">
+        <field name="name">Create Document Folders</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="binding_model_id" ref="base.model_res_partner"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_batch_create_document_folders()</field>
+    </record>
+
+    <record id="view_partner_form_jhm_fields" model="ir.ui.view">
+        <field name="name">res.partner.form.jhm.fields</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Spouse-of banner: shown only on spouse contacts -->
+            <xpath expr="//notebook" position="before">
+                <div class="alert alert-info" invisible="not spouse_of_id" style="margin-bottom:8px;">
+                    <strong>Spouse of: </strong>
+                    <field name="spouse_of_id" readonly="1" nolabel="1" class="oe_inline"/>
+                </div>
+            </xpath>
+
+            <!-- Insert JHM fields in the main sheet area, before the notebook -->
+            <xpath expr="//notebook" position="before">
+
+                <group string="JHM Information">
+                    <group string="Spouse">
+                        <field name="spouse_name"/>
+                        <field name="spouse_phone"/>
+                        <field name="spouse_email"/>
+                        <field name="spouse_partner_id" string="Spouse Contact" readonly="1"/>
+                    </group>
+                    <group string="Profile">
+                        <field name="gender"/>
+                        <field name="client_nationality_id"/>
+                        <field name="jhm_line_id" string="Line ID"/>
+                        <field name="communication_channel_id"/>
+                        <field name="b2b_engagement"/>
+                        <field name="background_id"/>
+                        <field name="immigration_country"/>
+                    </group>
+                    <group string="Case">
+                        <field name="visa_program_id"/>
+                        <field name="previous_visa_program_id"/>
+                        <field name="jhm_lead_source_id" string="Lead Source"/>
+                        <field name="source_details"/>
+                    </group>
+                </group>
+
+                <group>
+                    <group string="Financial">
+                        <field name="commission"/>
+                        <field name="migration_budget"/>
+                        <field name="facing_problems"/>
+                        <field name="consultation_fee_paid"/>
+                    </group>
+                    <group string="Dates">
+                        <field name="sf_creation_date"/>
+                        <field name="appointment_date"/>
+                        <field name="appointment_notes"/>
+                        <field name="last_call_date"/>
+                        <field name="sf_followup_date"/>
+                    </group>
+                </group>
+
+                <group string="Chat Log">
+                    <field name="chat_log" nolabel="1" placeholder="Chat log..."/>
+                </group>
+
+                <group string="Description">
+                    <field name="jhm_description" nolabel="1" placeholder="Description..."/>
+                </group>
+
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

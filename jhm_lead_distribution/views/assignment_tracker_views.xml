@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_jhm_assignment_tracker_form" model="ir.ui.view">
+        <field name="name">jhm.assignment.tracker.form</field>
+        <field name="model">jhm.assignment.tracker</field>
+        <field name="arch" type="xml">
+            <form string="Lead Assignment Tracker">
+                <sheet>
+                    <group>
+                        <field name="company_id"/>
+                        <field name="last_assigned_user_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_jhm_assignment_tracker_list" model="ir.ui.view">
+        <field name="name">jhm.assignment.tracker.list</field>
+        <field name="model">jhm.assignment.tracker</field>
+        <field name="arch" type="xml">
+            <list string="Lead Assignment Trackers">
+                <field name="company_id"/>
+                <field name="last_assigned_user_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_jhm_assignment_tracker" model="ir.actions.act_window">
+        <field name="name">Lead Assignment Tracker</field>
+        <field name="res_model">jhm.assignment.tracker</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_jhm_assignment_tracker"
+        name="Lead Assignment Tracker"
+        parent="crm.crm_menu_config"
+        action="action_jhm_assignment_tracker"
+        groups="sales_team.group_sale_manager"
+        sequence="50"/>
+</odoo>

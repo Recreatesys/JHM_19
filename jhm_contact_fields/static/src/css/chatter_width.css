@@ -1,0 +1,31 @@
+/* Chatter: fixed 20% on the far right */
+.o-mail-Form-chatter.o-aside,
+.o-mail-ChatterContainer.o-aside {
+    width: 20% !important;
+    min-width: 20% !important;
+    max-width: 20% !important;
+    flex: 0 0 20% !important;
+    margin-left: auto !important;
+    order: 999 !important;
+}
+
+/* Main sheet: no max-width cap, expands to fill all remaining space */
+.o_form_view .o_form_renderer {
+    max-width: none !important;
+}
+
+.o_form_view .o_form_sheet_bg {
+    max-width: none !important;
+    flex: 1 1 auto !important;
+    margin-right: 0 !important;
+}
+
+.o_form_view .o_form_sheet {
+    max-width: none !important;
+}
+
+/* Ensure the xxl form view layout also respects these rules */
+.o_form_view.o_xxl_form_view .o_form_sheet_bg {
+    flex: 1 1 auto !important;
+    margin-right: 0 !important;
+}
