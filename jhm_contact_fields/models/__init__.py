@@ -4,3 +4,4 @@ from . import crm_lead
 from . import jhm_daily_sales_report
 from . import jhm_sales_mtd_report
 from . import jhm_lead_reports
+from . import jhm_crm_import_wizard

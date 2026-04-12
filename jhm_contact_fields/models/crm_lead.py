@@ -587,21 +587,22 @@ class CrmLead(models.Model):
                 if partner_vals:
                     rec.partner_id.with_context(jhm_no_sync=True).write(partner_vals)
 
-        for rec in records:
-            rec._sync_assignment_followers()
-        # Apply HK stage probability for newly created records
-        records._apply_hk_stage_probability()
-        # Create document + portal access if probability >= 50%
-        try:
-            with self.env.cr.savepoint():
-                records._create_met_followup_document()
-        except Exception as e:
-            _logger.warning("Document creation failed on create: %s", e)
-        try:
-            with self.env.cr.savepoint():
-                records._create_portal_access_if_needed()
-        except Exception as e:
-            _logger.warning("Portal access creation failed on create: %s", e)
+        if not self.env.context.get('jhm_import'):
+            for rec in records:
+                rec._sync_assignment_followers()
+            # Apply HK stage probability for newly created records
+            records._apply_hk_stage_probability()
+            # Create document + portal access if probability >= 50%
+            try:
+                with self.env.cr.savepoint():
+                    records._create_met_followup_document()
+            except Exception as e:
+                _logger.warning("Document creation failed on create: %s", e)
+            try:
+                with self.env.cr.savepoint():
+                    records._create_portal_access_if_needed()
+            except Exception as e:
+                _logger.warning("Portal access creation failed on create: %s", e)
         return records
 
     # ── Persist on write ─────────────────────────────────────────────────

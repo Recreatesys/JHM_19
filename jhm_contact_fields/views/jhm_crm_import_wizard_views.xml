@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Wizard form view -->
+        <record id="view_jhm_crm_import_wizard_form" model="ir.ui.view">
+            <field name="name">jhm.crm.import.wizard.form</field>
+            <field name="model">jhm.crm.import.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Import CRM Leads from XLS">
+                    <sheet>
+                        <group col="2">
+                            <field name="file_data" filename="file_name" widget="binary"
+                                   string="XLS File"
+                                   invisible="state == 'done'"/>
+                            <field name="file_name" invisible="1"/>
+                        </group>
+
+                        <!-- Result section (shown after import) -->
+                        <group string="Import Result" invisible="state != 'done'">
+                            <field name="imported_count" string="Records Imported"/>
+                            <field name="skipped_count"  string="Records Skipped / Errors"/>
+                        </group>
+                        <group invisible="state != 'done'">
+                            <field name="result_log" string="Log" widget="text" nolabel="1"
+                                   style="font-family:monospace; white-space:pre-wrap;"/>
+                        </group>
+
+                        <field name="state" invisible="1"/>
+                    </sheet>
+
+                    <footer>
+                        <button name="action_import"
+                                string="Import"
+                                type="object"
+                                class="btn-primary"
+                                invisible="state == 'done'"/>
+                        <button string="Close"
+                                class="btn-secondary"
+                                special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- Menu action -->
+        <record id="action_jhm_crm_import_wizard" model="ir.actions.act_window">
+            <field name="name">Import Leads from XLS</field>
+            <field name="res_model">jhm.crm.import.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <!-- CRM menu entry (under CRM > Configuration or CRM top menu) -->
+        <menuitem id="menu_jhm_crm_import_wizard"
+                  name="Import Leads from XLS"
+                  parent="crm.crm_menu_root"
+                  action="action_jhm_crm_import_wizard"
+                  sequence="99"
+                  groups="sales_team.group_sale_manager"/>
+
+    </data>
+</odoo>

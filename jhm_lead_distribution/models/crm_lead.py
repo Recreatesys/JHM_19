@@ -77,6 +77,8 @@ class CrmLead(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         records = super().create(vals_list)
+        if self.env.context.get('jhm_import'):
+            return records
         # Auto-assign any records created directly as opportunities without a salesperson
         to_assign = records.filtered(lambda r: r.type == 'opportunity' and not r.user_id)
         if to_assign:
