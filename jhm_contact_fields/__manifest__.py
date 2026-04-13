@@ -21,6 +21,8 @@
         'web.assets_backend': [
             'jhm_contact_fields/static/src/css/chatter_width.css',
             'jhm_contact_fields/static/src/js/import_patch.js',
+            'jhm_contact_fields/static/src/xml/import_progress.xml',
+            'jhm_contact_fields/static/src/js/import_progress.js',
         ],
     },
     'installable': True,

@@ -8,5 +8,6 @@ class CrmStage(models.Model):
         'res.company',
         string='Company',
         index=True,
+        default=lambda self: self.env.company,
         help='If set, this stage is only available for leads/opportunities in this company.',
     )

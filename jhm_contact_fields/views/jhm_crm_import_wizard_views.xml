@@ -9,14 +9,30 @@
             <field name="arch" type="xml">
                 <form string="Import CRM Leads from XLS">
                     <sheet>
-                        <group col="2">
+
+                        <!-- File upload — shown in draft only -->
+                        <group col="2" invisible="state != 'draft'">
                             <field name="file_data" filename="file_name" widget="binary"
-                                   string="XLS File"
-                                   invisible="state == 'done'"/>
+                                   string="XLS File"/>
                             <field name="file_name" invisible="1"/>
                         </group>
 
-                        <!-- Result section (shown after import) -->
+                        <!-- In-progress notice (shown if user closes the dialog mid-import
+                             and re-opens the wizard record) -->
+                        <group invisible="state != 'running'">
+                            <div class="alert alert-info" role="status">
+                                <strong>Import in progress.</strong>
+                                Batch <field name="current_batch" readonly="1" nolabel="1"
+                                             style="display:inline; width:40px;"/> of
+                                <field name="total_batches" readonly="1" nolabel="1"
+                                       style="display:inline; width:40px;"/>
+                                &amp;nbsp;—&amp;nbsp;
+                                <field name="imported_count" readonly="1" nolabel="1"
+                                       style="display:inline; width:60px;"/> imported so far.
+                            </div>
+                        </group>
+
+                        <!-- Result section — shown after import completes -->
                         <group string="Import Result" invisible="state != 'done'">
                             <field name="imported_count" string="Records Imported"/>
                             <field name="skipped_count"  string="Records Skipped / Errors"/>
@@ -27,14 +43,24 @@
                         </group>
 
                         <field name="state" invisible="1"/>
+
                     </sheet>
 
                     <footer>
+                        <!-- Draft: start import -->
                         <button name="action_import"
-                                string="Import"
+                                string="Start Import"
                                 type="object"
                                 class="btn-primary"
-                                invisible="state == 'done'"/>
+                                invisible="state != 'draft'"/>
+
+                        <!-- Running: resume (re-opens progress dialog) -->
+                        <button name="action_import"
+                                string="Resume Import"
+                                type="object"
+                                class="btn-warning"
+                                invisible="state != 'running'"/>
+
                         <button string="Close"
                                 class="btn-secondary"
                                 special="cancel"/>
@@ -51,7 +77,7 @@
             <field name="target">new</field>
         </record>
 
-        <!-- CRM menu entry (under CRM > Configuration or CRM top menu) -->
+        <!-- CRM menu entry -->
         <menuitem id="menu_jhm_crm_import_wizard"
                   name="Import Leads from XLS"
                   parent="crm.crm_menu_root"
