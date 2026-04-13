@@ -17,6 +17,16 @@
                 </button>
             </xpath>
 
+            <!-- Sync Contact button — shown when no contact is linked -->
+            <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
+                <button type="object"
+                        name="action_open_contact_sync_wizard"
+                        class="oe_stat_button"
+                        icon="fa-user-plus"
+                        string="Sync Contact"
+                        invisible="partner_id != False"/>
+            </xpath>
+
             <!-- Replace free-text probability input with selection field -->
             <!-- Hide the original float input and % sign -->
             <xpath expr="//div[@id='probability']/field[@name='probability']" position="attributes">

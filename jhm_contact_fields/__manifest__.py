@@ -16,6 +16,7 @@
         'views/sales_channel_report.xml',
         'views/lead_reports.xml',
         'views/jhm_crm_import_wizard_views.xml',
+        'views/jhm_crm_contact_sync_wizard_views.xml',
     ],
     'assets': {
         'web.assets_backend': [

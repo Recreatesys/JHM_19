@@ -397,7 +397,8 @@ class JhmCrmImportWizard(models.TransientModel):
         _logger.info('JHM CRM Import: %d rows → %d batches of %d',
                      total_rows, total_batches, self.BATCH_SIZE)
 
-        env = self.env.with_context(_BATCH_CTX)
+        ctx = dict(self.env.context, **_BATCH_CTX)
+        env = self.env(context=ctx)
 
         fallback_user = env['res.users'].search(
             [('name', '=ilike', 'Stephano'), ('share', '=', False)], limit=1

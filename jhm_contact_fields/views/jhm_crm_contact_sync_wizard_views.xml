@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Wizard form view -->
+        <record id="view_jhm_crm_contact_sync_wizard_form" model="ir.ui.view">
+            <field name="name">jhm.crm.contact.sync.wizard.form</field>
+            <field name="model">jhm.crm.contact.sync.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Sync Contacts from Opportunities">
+                    <sheet>
+
+                        <!-- Confirm state -->
+                        <group invisible="state != 'confirm'">
+                            <div class="alert alert-info" role="status">
+                                <strong><field name="to_create" nolabel="1" style="display:inline;"/> contact(s) will be created</strong>
+                                and <strong><field name="to_update" nolabel="1" style="display:inline;"/> existing contact(s) will be updated</strong>
+                                with data from the selected opportunities.
+                            </div>
+                            <field name="lead_ids" widget="many2many_tags" string="Opportunities"/>
+                        </group>
+
+                        <!-- Done state -->
+                        <group invisible="state != 'done'">
+                            <div class="alert alert-success" role="status">
+                                <strong>Sync complete!</strong>
+                            </div>
+                            <field name="created"    string="Contacts Created"/>
+                            <field name="updated"    string="Contacts Updated"/>
+                            <field name="skipped"    string="Skipped / Errors"/>
+                        </group>
+                        <group invisible="state != 'done'">
+                            <field name="result_log" string="Log" widget="text" nolabel="1"
+                                   style="font-family:monospace; white-space:pre-wrap;"/>
+                        </group>
+
+                        <field name="state" invisible="1"/>
+                    </sheet>
+
+                    <footer>
+                        <button name="action_sync"
+                                string="Sync Contacts"
+                                type="object"
+                                class="btn-primary"
+                                invisible="state != 'confirm'"/>
+                        <button string="Close"
+                                class="btn-secondary"
+                                special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- Server action bound to crm.lead list/form — appears in Action menu -->
+        <record id="action_jhm_crm_contact_sync_server" model="ir.actions.server">
+            <field name="name">Sync Contacts</field>
+            <field name="model_id" ref="crm.model_crm_lead"/>
+            <field name="binding_model_id" ref="crm.model_crm_lead"/>
+            <field name="binding_view_types">list,form</field>
+            <field name="state">code</field>
+            <field name="code">
+action = {
+    'type': 'ir.actions.act_window',
+    'name': 'Sync Contacts',
+    'res_model': 'jhm.crm.contact.sync.wizard',
+    'view_mode': 'form',
+    'target': 'new',
+    'context': {
+        'active_ids': records.ids,
+        'active_model': 'crm.lead',
+    },
+}
+            </field>
+        </record>
+
+    </data>
+</odoo>

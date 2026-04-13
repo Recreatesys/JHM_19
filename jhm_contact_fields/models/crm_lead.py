@@ -691,3 +691,17 @@ class CrmLead(models.Model):
                 _logger.warning("Portal access creation failed: %s", e)
 
         return result
+
+    def action_open_contact_sync_wizard(self):
+        """Open the contact sync wizard pre-loaded with this opportunity."""
+        return {
+            'type':      'ir.actions.act_window',
+            'name':      'Sync Contact',
+            'res_model': 'jhm.crm.contact.sync.wizard',
+            'view_mode': 'form',
+            'target':    'new',
+            'context': {
+                'active_ids':   self.ids,
+                'active_model': 'crm.lead',
+            },
+        }
