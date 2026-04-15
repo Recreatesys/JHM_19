@@ -2,6 +2,21 @@ from datetime import datetime, time as dtime
 
 from odoo import api, fields, models
 
+_CASE_STATUS = [
+    ('not_required', 'Not Required'),
+    ('not_started',  'Not Started'),
+    ('waiting',      'Waiting'),
+    ('in_progress',  'In Progress'),
+    ('lodged',       'Lodged'),
+    ('appealed',     'Appealed'),
+    ('re_applied',   'Re-applied'),
+    ('completed',    'Completed'),
+    ('rejected',     'Rejected'),
+    ('invited',      'Invited'),
+    ('re_sit',       'Re-sit'),
+    ('failed',       'Failed'),
+]
+
 
 class ResPartner(models.Model):
     _inherit = 'res.partner'
@@ -11,11 +26,13 @@ class ResPartner(models.Model):
     phone = fields.Char(string='Main Applicant Phone')
 
     # ── Profile ──────────────────────────────────────────────────────────
+    occupation = fields.Char('Occupation')
     gender = fields.Selection([
         ('M', 'M'), ('F', 'F'), ('Male', 'Male'), ('Female', 'Female'), ('TBD', 'TBD'),
     ], string='Gender')
     client_nationality_id = fields.Many2one('jhm.nationality', string="Client's Nationality")
     jhm_line_id = fields.Char('Line ID')
+    wechat = fields.Char('WeChat')
     b2b_engagement = fields.Boolean('B2B Engagement')
     background_id = fields.Many2one('jhm.background', string='Background')
     immigration_country = fields.Char('Immigration Country')
@@ -34,6 +51,7 @@ class ResPartner(models.Model):
     # ── Dates ─────────────────────────────────────────────────────────────
     sf_creation_date = fields.Date('SF Creation Date')
     appointment_date = fields.Date('Appointment Date')
+    appointment_date_2 = fields.Date('2nd Appointment Date')
     appointment_notes = fields.Char('Appointment Notes')
     last_call_date = fields.Date('Last Call Date')
     sf_followup_date = fields.Date('SF Followup Date')
@@ -41,10 +59,50 @@ class ResPartner(models.Model):
     # ── Spouse ────────────────────────────────────────────────────────────
     type = fields.Selection(selection_add=[('spouse', 'Spouse')], ondelete={'spouse': 'set default'})
     spouse_name = fields.Char('Spouse Name')
-    spouse_phone = fields.Char('Spouse Phone')
+    spouse_phone = fields.Char('Spouse Mobile')
     spouse_email = fields.Char('Spouse Email')
     spouse_partner_id = fields.Many2one('res.partner', string='Spouse Contact', ondelete='set null')
     spouse_of_id = fields.Many2one('res.partner', string='Spouse of', ondelete='set null', readonly=True)
+    spouse_highest_qualification = fields.Char("Spouse's Highest Qualification")
+    family_sponsorship = fields.Boolean('Family Sponsorship')
+    spouse_studied_in_immigration_country = fields.Boolean("Spouse's Studied in Immigration Country")
+    no_of_children = fields.Integer('No. of Children')
+    child_1 = fields.Char('Applicant Child 1')
+    child_2 = fields.Char('Applicant Child 2')
+    child_3 = fields.Char('Applicant Child 3')
+    child_4 = fields.Char('Applicant Child 4')
+    child_5 = fields.Char('Applicant Child 5')
+
+    # ── Academic ──────────────────────────────────────────────────────────
+    academic_survey_date = fields.Date('Survey Date')
+    academic_problems = fields.Selection([
+        ('secondary_school', 'Secondary School'),
+        ('adhd', 'AD/HD'),
+        ('bachelor', 'Bachelor'),
+        ('master', 'Master'),
+        ('doctor', 'Doctor'),
+    ], string='Problems')
+    academic_studied_in_immigration_country = fields.Boolean('Studied in Immigration Country')
+    academic_highest_qualification = fields.Selection([
+        ('secondary_school', 'Secondary School'),
+        ('adhd', 'AD/HD'),
+        ('bachelor', 'Bachelor'),
+        ('master', 'Master'),
+        ('doctor', 'Doctor'),
+    ], string='Highest Qualification')
+
+    # ── Client Survey ─────────────────────────────────────────────────────
+    survey_date = fields.Date('Survey Date')
+    survey_problems = fields.Selection(
+        [('5', '5'), ('4', '4'), ('3', '3'), ('2', '2'), ('1', '1')], string='Problems')
+    survey_satisfaction = fields.Selection(
+        [('5', '5'), ('4', '4'), ('3', '3'), ('2', '2'), ('1', '1')], string='Satisfaction')
+    survey_professional = fields.Selection(
+        [('5', '5'), ('4', '4'), ('3', '3'), ('2', '2'), ('1', '1')], string='Professional')
+    survey_responsive = fields.Selection(
+        [('5', '5'), ('4', '4'), ('3', '3'), ('2', '2'), ('1', '1')], string='Responsive')
+    survey_recommend = fields.Selection(
+        [('5', '5'), ('4', '4'), ('3', '3'), ('2', '2'), ('1', '1')], string='Recommend')
 
     def _compute_type_address_label(self):
         for partner in self:
@@ -56,6 +114,26 @@ class ResPartner(models.Model):
     # ── Long text ─────────────────────────────────────────────────────────
     chat_log = fields.Text('Chat Log')
     jhm_description = fields.Text('Description')
+
+    # ── Case tracking ─────────────────────────────────────────────────────
+    birthday = fields.Date('Birthday')
+    nomination = fields.Selection(_CASE_STATUS, string='Nomination')
+    nomination_due_date = fields.Date('Nomination Due Date')
+    aus_skill_status = fields.Char('Aus Skill Status')
+    assessment_due_date = fields.Date('Assessment Due Date')
+    assessment = fields.Selection(_CASE_STATUS, string='Assessment')
+    spouse_occupation = fields.Char("Spouse's Occupation")
+    admin = fields.Text('Admin')
+    eoi = fields.Selection(_CASE_STATUS, string='EOI')
+    eoi_date = fields.Date('EOI Date')
+    los_date = fields.Date('LOS Date')
+    lodgment_date = fields.Date('Lodgment Date')
+    ielts = fields.Selection(_CASE_STATUS, string='IELTS')
+    ielts_due_date = fields.Date('IELTS Due Date')
+    health = fields.Selection(_CASE_STATUS, string='Health')
+    health_due_date = fields.Date('Health Due Date')
+    police = fields.Selection(_CASE_STATUS, string='Police')
+    police_due_date = fields.Date('Police Due Date')
 
     # ── Batch action: create document folders for selected contacts ───────
     def action_batch_create_document_folders(self):
@@ -163,6 +241,7 @@ class ResPartner(models.Model):
                 'gender': 'partner_gender',
                 'client_nationality_id': 'partner_client_nationality_id',
                 'jhm_line_id': 'partner_jhm_line_id',
+                'wechat': 'partner_wechat',
                 'b2b_engagement': 'partner_b2b_engagement',
                 'background_id': 'partner_background_id',
                 'immigration_country': 'partner_immigration_country',
@@ -177,11 +256,36 @@ class ResPartner(models.Model):
                 'consultation_fee_paid': 'partner_consultation_fee_paid',
                 'sf_creation_date': 'partner_sf_creation_date',
                 'appointment_date': 'partner_appointment_date',
+                'appointment_date_2': 'partner_appointment_date_2',
                 'appointment_notes': 'partner_appointment_notes',
                 'last_call_date': 'partner_last_call_date',
                 'sf_followup_date': 'partner_sf_followup_date',
                 'chat_log': 'partner_chat_log',
                 'jhm_description': 'partner_jhm_description',
+                'occupation': 'partner_occupation',
+                'birthday': 'partner_birthday',
+                'admin': 'partner_admin',
+                'nomination': 'partner_nomination',
+                'nomination_due_date': 'partner_nomination_due_date',
+                'aus_skill_status': 'partner_aus_skill_status',
+                'assessment_due_date': 'partner_assessment_due_date',
+                'assessment': 'partner_assessment',
+                'spouse_occupation': 'partner_spouse_occupation',
+                'child_1': 'partner_child_1',
+                'child_2': 'partner_child_2',
+                'child_3': 'partner_child_3',
+                'child_4': 'partner_child_4',
+                'spouse_highest_qualification': 'partner_spouse_highest_qualification',
+                'eoi': 'partner_eoi',
+                'eoi_date': 'partner_eoi_date',
+                'los_date': 'partner_los_date',
+                'lodgment_date': 'partner_lodgment_date',
+                'ielts': 'partner_ielts',
+                'ielts_due_date': 'partner_ielts_due_date',
+                'health': 'partner_health',
+                'health_due_date': 'partner_health_due_date',
+                'police': 'partner_police',
+                'police_due_date': 'partner_police_due_date',
             }
             crm_vals = {
                 _PARTNER_TO_CRM[pf]: v

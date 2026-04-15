@@ -28,13 +28,8 @@
             <xpath expr="//notebook" position="before">
 
                 <group string="JHM Information">
-                    <group string="Spouse">
-                        <field name="spouse_name"/>
-                        <field name="spouse_phone"/>
-                        <field name="spouse_email"/>
-                        <field name="spouse_partner_id" string="Spouse Contact" readonly="1"/>
-                    </group>
                     <group string="Profile">
+                        <field name="occupation"/>
                         <field name="gender"/>
                         <field name="client_nationality_id"/>
                         <field name="jhm_line_id" string="Line ID"/>
@@ -67,13 +62,102 @@
                     </group>
                 </group>
 
-                <group string="Chat Log">
-                    <field name="chat_log" nolabel="1" placeholder="Chat log..."/>
+                <group>
+                    <group string="Personal">
+                        <field name="birthday"/>
+                    </group>
                 </group>
 
-                <group string="Description">
-                    <field name="jhm_description" nolabel="1" placeholder="Description..."/>
+                <group string="Case Tracking">
+                    <group>
+                        <field name="nomination"/>
+                        <field name="nomination_due_date"/>
+                        <field name="eoi"/>
+                        <field name="eoi_date"/>
+                        <field name="los_date"/>
+                        <field name="lodgment_date"/>
+                        <field name="ielts"/>
+                        <field name="ielts_due_date"/>
+                        <field name="aus_skill_status"/>
+                        <field name="assessment"/>
+                        <field name="assessment_due_date"/>
+                    </group>
+                    <group>
+                        <field name="health"/>
+                        <field name="health_due_date"/>
+                        <field name="police"/>
+                        <field name="police_due_date"/>
+                    </group>
                 </group>
+
+                <separator string="Admin"/>
+                <field name="admin" nolabel="1" placeholder="Admin notes..."
+                       style="font-family:monospace; white-space:pre-wrap;"/>
+
+                <separator string="Chat Log"/>
+                <field name="chat_log" nolabel="1" placeholder="Chat log..."/>
+
+                <separator string="Description"/>
+                <field name="jhm_description" nolabel="1" placeholder="Description..."/>
+
+            </xpath>
+
+            <!-- Add JHM tabs to the notebook -->
+            <xpath expr="//notebook" position="inside">
+
+                <page string="Academic" name="jhm_academic">
+                    <group>
+                        <group>
+                            <field name="academic_survey_date"/>
+                            <field name="academic_problems"/>
+                        </group>
+                        <group>
+                            <field name="academic_studied_in_immigration_country"/>
+                            <field name="academic_highest_qualification"/>
+                        </group>
+                    </group>
+                </page>
+
+                <page string="Client Survey" name="jhm_client_survey">
+                    <group>
+                        <group>
+                            <field name="survey_date"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="survey_problems"/>
+                            <field name="survey_satisfaction"/>
+                            <field name="survey_professional"/>
+                        </group>
+                        <group>
+                            <field name="survey_responsive"/>
+                            <field name="survey_recommend"/>
+                        </group>
+                    </group>
+                </page>
+
+                <page string="Spouse &amp; Children" name="jhm_spouse_children">
+                    <group>
+                        <group string="Spouse">
+                            <field name="spouse_name"/>
+                            <field name="spouse_phone" string="Spouse Mobile"/>
+                            <field name="spouse_email"/>
+                            <field name="spouse_highest_qualification"/>
+                            <field name="spouse_occupation"/>
+                            <field name="family_sponsorship"/>
+                            <field name="spouse_studied_in_immigration_country"/>
+                        </group>
+                        <group string="Children">
+                            <field name="no_of_children"/>
+                            <field name="child_1"/>
+                            <field name="child_2"/>
+                            <field name="child_3"/>
+                            <field name="child_4"/>
+                            <field name="child_5"/>
+                        </group>
+                    </group>
+                </page>
 
             </xpath>
 

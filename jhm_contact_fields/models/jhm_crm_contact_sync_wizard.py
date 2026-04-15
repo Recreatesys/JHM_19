@@ -9,6 +9,7 @@ _CRM_TO_PARTNER = {
     'partner_gender':                   'gender',
     'partner_client_nationality_id':    'client_nationality_id',
     'partner_jhm_line_id':              'jhm_line_id',
+    'partner_wechat':                   'wechat',
     'partner_b2b_engagement':           'b2b_engagement',
     'partner_background_id':            'background_id',
     'partner_immigration_country':      'immigration_country',

@@ -3,6 +3,21 @@ from odoo import api, fields, models
 
 _logger = logging.getLogger(__name__)
 
+_CASE_STATUS = [
+    ('not_required', 'Not Required'),
+    ('not_started',  'Not Started'),
+    ('waiting',      'Waiting'),
+    ('in_progress',  'In Progress'),
+    ('lodged',       'Lodged'),
+    ('appealed',     'Appealed'),
+    ('re_applied',   'Re-applied'),
+    ('completed',    'Completed'),
+    ('rejected',     'Rejected'),
+    ('invited',      'Invited'),
+    ('re_sit',       'Re-sit'),
+    ('failed',       'Failed'),
+]
+
 PROBABILITY_SELECTION = [
     ('10', '10%'),
     ('30', '30%'),
@@ -12,23 +27,23 @@ PROBABILITY_SELECTION = [
     ('100', '100%'),
 ]
 
-MET_FOLLOW_UP_STAGE_ID = 8   # Met & Follow Up stage for John Hu Migration
-
-# HK stage ID → probability string
-_HK_STAGE_PROBABILITY = {
-    5: '10',   # New Lead
-    6: '30',   # Valid Whatsapp Op
-    7: '50',   # Appointment
-    8: '70',   # Met & Follow Up
-    9: '90',   # Service Agreement
-    10: '90',  # Ready to Close
-}
+# Stage name (case-insensitive substring) → probability string
+# Looked up by name at runtime so IDs don't need to match across databases
+_STAGE_NAME_PROBABILITY = [
+    ('new lead',          '10'),
+    ('valid whatsapp',    '30'),
+    ('appointment',       '50'),
+    ('met & follow up',   '70'),
+    ('service agreement', '90'),
+    ('ready to close',    '90'),
+]
 
 # Maps each standalone crm.lead field → the matching res.partner field name
 _CRM_TO_PARTNER = {
     'partner_gender': 'gender',
     'partner_client_nationality_id': 'client_nationality_id',
     'partner_jhm_line_id': 'jhm_line_id',
+    'partner_wechat': 'wechat',
     'partner_b2b_engagement': 'b2b_engagement',
     'partner_background_id': 'background_id',
     'partner_immigration_country': 'immigration_country',
@@ -43,6 +58,7 @@ _CRM_TO_PARTNER = {
     'partner_consultation_fee_paid': 'consultation_fee_paid',
     'partner_sf_creation_date': 'sf_creation_date',
     'partner_appointment_date': 'appointment_date',
+    'partner_appointment_date_2': 'appointment_date_2',
     'partner_appointment_notes': 'appointment_notes',
     'partner_last_call_date': 'last_call_date',
     'partner_sf_followup_date': 'sf_followup_date',
@@ -51,6 +67,31 @@ _CRM_TO_PARTNER = {
     'partner_spouse_name': 'spouse_name',
     'partner_spouse_phone': 'spouse_phone',
     'partner_spouse_email': 'spouse_email',
+    # Case tracking fields
+    'partner_occupation': 'occupation',
+    'partner_birthday': 'birthday',
+    'partner_admin': 'admin',
+    'partner_nomination': 'nomination',
+    'partner_nomination_due_date': 'nomination_due_date',
+    'partner_aus_skill_status': 'aus_skill_status',
+    'partner_assessment_due_date': 'assessment_due_date',
+    'partner_assessment': 'assessment',
+    'partner_spouse_occupation': 'spouse_occupation',
+    'partner_child_1': 'child_1',
+    'partner_child_2': 'child_2',
+    'partner_child_3': 'child_3',
+    'partner_child_4': 'child_4',
+    'partner_spouse_highest_qualification': 'spouse_highest_qualification',
+    'partner_eoi': 'eoi',
+    'partner_eoi_date': 'eoi_date',
+    'partner_los_date': 'los_date',
+    'partner_lodgment_date': 'lodgment_date',
+    'partner_ielts': 'ielts',
+    'partner_ielts_due_date': 'ielts_due_date',
+    'partner_health': 'health',
+    'partner_health_due_date': 'health_due_date',
+    'partner_police': 'police',
+    'partner_police_due_date': 'police_due_date',
 }
 
 
@@ -112,6 +153,7 @@ class CrmLead(models.Model):
     partner_client_nationality_id = fields.Many2one(
         'jhm.nationality', string="Client's Nationality")
     partner_jhm_line_id = fields.Char(string='Line ID')
+    partner_wechat = fields.Char(string='WeChat')
     partner_b2b_engagement = fields.Boolean(string='B2B Engagement')
     partner_background_id = fields.Many2one('jhm.background', string='Background')
     partner_immigration_country = fields.Char(string='Immigration Country')
@@ -128,6 +170,7 @@ class CrmLead(models.Model):
     partner_consultation_fee_paid = fields.Char(string='Consultation Fee Paid')
     partner_sf_creation_date = fields.Date(string='SF Creation Date')
     partner_appointment_date = fields.Date(string='Appointment Date', tracking=True)
+    partner_appointment_date_2 = fields.Date(string='2nd Appointment Date')
     partner_appointment_notes = fields.Char(string='Appointment Notes')
     partner_last_call_date = fields.Date(string='Last Call Date', tracking=True)
     partner_sf_followup_date = fields.Date(string='SF Followup Date')
@@ -136,6 +179,136 @@ class CrmLead(models.Model):
     partner_spouse_name = fields.Char(string='Spouse Name')
     partner_spouse_phone = fields.Char(string='Spouse Phone')
     partner_spouse_email = fields.Char(string='Spouse Email')
+
+    # ── Taiwan / Webinar fields ───────────────────────────────────────────
+    webinar_name = fields.Char(string='Webinar Name')
+    _TW_STATUS = [('true', 'TRUE'), ('false', 'FALSE')]
+    tw_call_connected = fields.Selection(_TW_STATUS, string='Call Connected')
+    tw_added_on_line  = fields.Selection(_TW_STATUS, string='Added on LINE')
+    tw_email_sent     = fields.Selection(_TW_STATUS, string='Email Sent')
+    tw_group_created  = fields.Selection(_TW_STATUS, string='Group Created')
+    tw_followup_1 = fields.Text(string='1st Follow-up')
+    tw_followup_2 = fields.Text(string='2nd Follow-up')
+    tw_followup_3 = fields.Text(string='3rd Follow-up')
+    tw_followup_4 = fields.Text(string='4th Follow-up')
+
+    # ── Case tracking fields ──────────────────────────────────────────────
+    partner_occupation = fields.Char(string='Occupation')
+    partner_birthday = fields.Date(string='Birthday')
+    partner_nomination = fields.Selection(_CASE_STATUS, string='Nomination')
+    partner_nomination_due_date = fields.Date(string='Nomination Due Date')
+    partner_aus_skill_status = fields.Char(string='Aus Skill Status')
+    partner_assessment_due_date = fields.Date(string='Assessment Due Date')
+    partner_assessment = fields.Selection(_CASE_STATUS, string='Assessment')
+    partner_spouse_occupation = fields.Char(string="Spouse's Occupation")
+    partner_child_1 = fields.Char(string='Applicant Child 1')
+    partner_child_2 = fields.Char(string='Applicant Child 2')
+    partner_child_3 = fields.Char(string='Applicant Child 3')
+    partner_child_4 = fields.Char(string='Applicant Child 4')
+    partner_spouse_highest_qualification = fields.Char(string="Spouse's Highest Qualification")
+    partner_admin = fields.Text(string='Admin')
+    partner_eoi = fields.Selection(_CASE_STATUS, string='EOI')
+    partner_eoi_date = fields.Date(string='EOI Date')
+    partner_los_date = fields.Date(string='LOS Date')
+    partner_lodgment_date = fields.Date(string='Lodgment Date')
+    partner_ielts = fields.Selection(_CASE_STATUS, string='IELTS')
+    partner_ielts_due_date = fields.Date(string='IELTS Due Date')
+    partner_health = fields.Selection(_CASE_STATUS, string='Health')
+    partner_health_due_date = fields.Date(string='Health Due Date')
+    partner_police = fields.Selection(_CASE_STATUS, string='Police')
+    partner_police_due_date = fields.Date(string='Police Due Date')
+
+    # ── Sales tab ─────────────────────────────────────────────────────────
+    sale_total_amount      = fields.Float(string='Total Amount', digits=(16, 2))
+    sale_order_issue_date  = fields.Date(string='Order Issue Date')
+    sale_referral          = fields.Float(string='Referral', digits=(16, 2))
+
+    sale_payment_1         = fields.Float(string='1st Payment', digits=(16, 2))
+    sale_payment_date_1    = fields.Date(string='1st Payment Date')
+    sale_payment_2         = fields.Float(string='2nd Payment', digits=(16, 2))
+    sale_payment_date_2    = fields.Date(string='2nd Payment Date')
+    sale_payment_3         = fields.Float(string='3rd Payment', digits=(16, 2))
+    sale_payment_date_3    = fields.Date(string='3rd Payment Date')
+    sale_payment_4         = fields.Float(string='4th Payment', digits=(16, 2))
+    sale_payment_date_4    = fields.Date(string='4th Payment Date')
+    sale_payment_5         = fields.Float(string='5th Payment', digits=(16, 2))
+    sale_payment_date_5    = fields.Date(string='5th Payment Date')
+
+    sale_balance = fields.Float(
+        string='Balance', digits=(16, 2),
+        compute='_compute_sale_balance', store=True,
+    )
+
+    sale_commission_ratio  = fields.Float(string='Commission Ratio (%)', digits=(5, 2))
+    sale_commission_1      = fields.Float(string='1st Payment Commission', digits=(16, 2),
+                                          compute='_compute_sale_commissions', store=True)
+    sale_commission_2      = fields.Float(string='2nd Payment Commission', digits=(16, 2),
+                                          compute='_compute_sale_commissions', store=True)
+    sale_commission_3      = fields.Float(string='3rd Payment Commission', digits=(16, 2),
+                                          compute='_compute_sale_commissions', store=True)
+    sale_commission_4      = fields.Float(string='4th Payment Commission', digits=(16, 2),
+                                          compute='_compute_sale_commissions', store=True)
+    sale_commission_5      = fields.Float(string='5th Payment Commission', digits=(16, 2),
+                                          compute='_compute_sale_commissions', store=True)
+
+    # Not stored — depends on "current calendar month" so must recalculate on every read
+    sale_current_month_total_close = fields.Float(
+        string='Current Month Total Close', digits=(16, 2),
+        compute='_compute_sale_current_month',
+    )
+    sale_current_month_total_commission = fields.Float(
+        string='Current Month Total Commission', digits=(16, 2),
+        compute='_compute_sale_current_month',
+    )
+
+    @api.depends(
+        'sale_total_amount',
+        'sale_payment_1', 'sale_payment_2', 'sale_payment_3',
+        'sale_payment_4', 'sale_payment_5',
+    )
+    def _compute_sale_balance(self):
+        for rec in self:
+            paid = (
+                (rec.sale_payment_1 or 0) +
+                (rec.sale_payment_2 or 0) +
+                (rec.sale_payment_3 or 0) +
+                (rec.sale_payment_4 or 0) +
+                (rec.sale_payment_5 or 0)
+            )
+            rec.sale_balance = (rec.sale_total_amount or 0) - paid
+
+    @api.depends(
+        'sale_commission_ratio',
+        'sale_payment_1', 'sale_payment_2', 'sale_payment_3',
+        'sale_payment_4', 'sale_payment_5',
+    )
+    def _compute_sale_commissions(self):
+        for rec in self:
+            ratio = (rec.sale_commission_ratio or 0) / 100.0
+            rec.sale_commission_1 = (rec.sale_payment_1 or 0) * ratio
+            rec.sale_commission_2 = (rec.sale_payment_2 or 0) * ratio
+            rec.sale_commission_3 = (rec.sale_payment_3 or 0) * ratio
+            rec.sale_commission_4 = (rec.sale_payment_4 or 0) * ratio
+            rec.sale_commission_5 = (rec.sale_payment_5 or 0) * ratio
+
+    def _compute_sale_current_month(self):
+        today = fields.Date.today()
+        for rec in self:
+            total_close = 0.0
+            total_comm  = 0.0
+            payments = [
+                (rec.sale_payment_1, rec.sale_payment_date_1, rec.sale_commission_1),
+                (rec.sale_payment_2, rec.sale_payment_date_2, rec.sale_commission_2),
+                (rec.sale_payment_3, rec.sale_payment_date_3, rec.sale_commission_3),
+                (rec.sale_payment_4, rec.sale_payment_date_4, rec.sale_commission_4),
+                (rec.sale_payment_5, rec.sale_payment_date_5, rec.sale_commission_5),
+            ]
+            for amount, date, commission in payments:
+                if date and date.year == today.year and date.month == today.month:
+                    total_close += (amount or 0)
+                    total_comm  += (commission or 0)
+            rec.sale_current_month_total_close      = total_close
+            rec.sale_current_month_total_commission = total_comm
 
     # ── Inactive Lead flag ────────────────────────────────────────────────
     inactive_lead = fields.Boolean(string='Inactive Lead', default=False)
@@ -167,15 +340,18 @@ class CrmLead(models.Model):
     # ── Stage → probability (HK company only) ────────────────────────────
     def _apply_hk_stage_probability(self):
         """If the opportunity belongs to John Hu Migration Consulting Ltd.,
-        auto-set jhm_probability based on the current stage."""
-        hk_company = self.env.ref('base.main_company', raise_if_not_found=False)
-        # Find JHM HK company by name in case ref differs
+        auto-set jhm_probability based on the current stage name."""
         jhm_hk = self.env['res.company'].search(
-            [('name', 'like', 'John Hu Migration')], limit=1
+            [('name', 'ilike', 'John Hu Migration')], limit=1
         )
         for rec in self:
             if jhm_hk and rec.company_id.id == jhm_hk.id:
-                prob = _HK_STAGE_PROBABILITY.get(rec.stage_id.id)
+                stage_name = (rec.stage_id.name or '').lower()
+                prob = None
+                for keyword, probability in _STAGE_NAME_PROBABILITY:
+                    if keyword in stage_name:
+                        prob = probability
+                        break
                 if prob:
                     rec.jhm_probability = prob
                     rec.probability = float(prob)

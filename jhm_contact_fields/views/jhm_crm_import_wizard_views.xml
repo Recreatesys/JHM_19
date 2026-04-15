@@ -12,6 +12,8 @@
 
                         <!-- File upload — shown in draft only -->
                         <group col="2" invisible="state != 'draft'">
+                            <field name="import_format" widget="radio"/>
+                            <field name="import_mode" widget="radio"/>
                             <field name="file_data" filename="file_name" widget="binary"
                                    string="XLS File"/>
                             <field name="file_name" invisible="1"/>

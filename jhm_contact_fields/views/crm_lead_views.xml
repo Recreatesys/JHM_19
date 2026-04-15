@@ -27,6 +27,39 @@
                         invisible="partner_id != False"/>
             </xpath>
 
+            <!-- Fields in the Contacts tab (appended after the base groups) -->
+            <xpath expr="//page[@name='lead']" position="inside">
+                <group string="Personal">
+                    <field name="partner_birthday" string="Birthday"/>
+                </group>
+                <group string="Case Tracking">
+                    <group>
+                        <field name="partner_nomination"          string="Nomination"/>
+                        <field name="partner_nomination_due_date" string="Nomination Due Date"/>
+                        <field name="partner_eoi"                 string="EOI"/>
+                        <field name="partner_eoi_date"            string="EOI Date"/>
+                        <field name="partner_los_date"            string="LOS Date"/>
+                        <field name="partner_lodgment_date"       string="Lodgment Date"/>
+                        <field name="partner_ielts"               string="IELTS"/>
+                        <field name="partner_ielts_due_date"      string="IELTS Due Date"/>
+                        <field name="partner_aus_skill_status"    string="Aus Skill Status"/>
+                        <field name="partner_assessment"          string="Assessment"/>
+                        <field name="partner_assessment_due_date" string="Assessment Due Date"/>
+                    </group>
+                    <group>
+                        <field name="partner_health"          string="Health"/>
+                        <field name="partner_health_due_date" string="Health Due Date"/>
+                        <field name="partner_police"          string="Police"/>
+                        <field name="partner_police_due_date" string="Police Due Date"/>
+                    </group>
+                </group>
+                <group string="Admin">
+                    <field name="partner_admin" nolabel="1"
+                           placeholder="Admin notes..."
+                           style="font-family:monospace; white-space:pre-wrap;"/>
+                </group>
+            </xpath>
+
             <!-- Replace free-text probability input with selection field -->
             <!-- Hide the original float input and % sign -->
             <xpath expr="//div[@id='probability']/field[@name='probability']" position="attributes">
@@ -52,59 +85,102 @@
                 <field name="co_owner_ids" widget="many2many_tags" options="{'no_create': True}"/>
                 <field name="process_team_ids" widget="many2many_tags" options="{'no_create': True}"/>
                 <field name="process_2_ids" widget="many2many_tags" options="{'no_create': True}"/>
-                <field name="inactive_lead" widget="boolean_toggle"/>
                 <field name="time_to_close"/>
             </xpath>
 
-            <!-- Insert JHM fields in the main sheet area, before the notebook -->
-            <!-- All fields are related to the linked contact (two-way sync) -->
-            <xpath expr="//notebook" position="before">
+            <!-- Fields after Main Applicant Phone in the opportunity contact group -->
+            <xpath expr="//group[@name='opportunity_partner']//div[field[@name='phone']]" position="after">
+                <field name="partner_occupation"               string="Occupation"/>
+                <field name="partner_gender"                   string="Gender"/>
+                <field name="partner_client_nationality_id"    string="Nationality"/>
+                <field name="partner_jhm_line_id"              string="Line ID"/>
+                <field name="partner_communication_channel_id" string="Channel"/>
+                <field name="partner_wechat"                   string="WeChat"/>
+                <field name="partner_b2b_engagement"           string="B2B"/>
+                <field name="partner_background_id"            string="Background"/>
+                <field name="partner_spouse_name"              string="Spouse Name"/>
+                <field name="partner_spouse_phone"             string="Spouse Phone"/>
+                <field name="partner_spouse_email"             string="Spouse Email"/>
+                <field name="partner_spouse_highest_qualification" string="Spouse's Highest Qualification"/>
+                <field name="partner_spouse_occupation"        string="Spouse's Occupation"/>
+                <field name="partner_child_1"                  string="Applicant Child 1"/>
+                <field name="partner_child_2"                  string="Applicant Child 2"/>
+                <field name="partner_child_3"                  string="Applicant Child 3"/>
+                <field name="partner_child_4"                  string="Applicant Child 4"/>
+                <field name="partner_immigration_country"      string="Immigration Country"/>
+                <field name="partner_visa_program_id"          string="Visa Program"/>
+                <field name="partner_previous_visa_program_id" string="Prev. Visa Program"/>
+                <field name="partner_jhm_lead_source_id"       string="Lead Source"/>
+                <field name="partner_source_details"           string="Source Details"/>
+                <field name="webinar_name"                     string="Webinar Name"/>
+                <field name="partner_migration_budget"         string="Migration Budget"/>
+            </xpath>
 
-                <group string="JHM Information">
-                    <group string="Spouse">
-                        <field name="partner_spouse_name" string="Spouse Name"/>
-                        <field name="partner_spouse_phone" string="Spouse Phone"/>
-                        <field name="partner_spouse_email" string="Spouse Email"/>
-                    </group>
-                    <group string="Profile">
-                        <field name="partner_gender" string="Gender"/>
-                        <field name="partner_client_nationality_id" string="Client's Nationality"/>
-                        <field name="partner_jhm_line_id" string="Line ID"/>
-                        <field name="partner_communication_channel_id" string="Communication Channel"/>
-                        <field name="partner_b2b_engagement" string="B2B Engagement"/>
-                        <field name="partner_background_id" string="Background"/>
-                        <field name="partner_immigration_country" string="Immigration Country"/>
-                    </group>
-                    <group string="Case">
-                        <field name="partner_visa_program_id" string="Visa Program"/>
-                        <field name="partner_previous_visa_program_id" string="Previous Visa Program"/>
-                        <field name="partner_jhm_lead_source_id" string="Lead Source"/>
-                        <field name="partner_source_details" string="Source Details"/>
-                    </group>
-                </group>
+            <!-- Remaining fields after Tags in the opportunity group -->
+            <xpath expr="//group[@invisible=&quot;type == 'lead'&quot;]/field[@name='tag_ids']" position="after">
+                <field name="partner_commission"            string="Commission"/>
+                <field name="partner_facing_problems"       string="Facing Problems"/>
+                <field name="partner_consultation_fee_paid" string="Fee Paid"/>
+                <field name="partner_sf_creation_date"      string="SF Creation Date"/>
+                <field name="partner_appointment_date"      string="Appointment Date"/>
+                <field name="partner_appointment_date_2"   string="2nd Appointment Date"/>
+                <field name="partner_appointment_notes"     string="Appointment Notes"/>
+                <field name="partner_last_call_date"        string="Last Call Date"/>
+                <field name="partner_sf_followup_date"      string="Followup Date"/>
+                <field name="partner_chat_log"              string="Chat Log"    placeholder="Chat log..."/>
+                <field name="partner_jhm_description"       string="Description" placeholder="Description..."/>
+            </xpath>
 
-                <group>
-                    <group string="Financial">
-                        <field name="partner_commission" string="Commission"/>
-                        <field name="partner_migration_budget" string="Migration Budget"/>
-                        <field name="partner_facing_problems" string="Facing Problems"/>
-                        <field name="partner_consultation_fee_paid" string="Consultation Fee Paid"/>
+            <!-- Sales tab -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Sales" name="jhm_sales" invisible="type == 'lead'">
+                    <group string="Order">
+                        <group>
+                            <field name="sale_total_amount"     string="Total Amount"/>
+                            <field name="sale_order_issue_date" string="Order Issue Date"/>
+                            <field name="sale_referral"         string="Referral"/>
+                        </group>
+                        <group>
+                            <field name="sale_balance"
+                                   string="Balance"
+                                   readonly="1"
+                                   force_save="1"/>
+                            <field name="sale_current_month_total_close"
+                                   string="Current Month Total Close"
+                                   readonly="1"/>
+                            <field name="sale_current_month_total_commission"
+                                   string="Current Month Total Commission"
+                                   readonly="1"/>
+                        </group>
                     </group>
-                    <group string="Dates">
-                        <field name="partner_sf_creation_date" string="SF Creation Date"/>
-                        <field name="partner_appointment_date" string="Appointment Date"/>
-                        <field name="partner_appointment_notes" string="Appointment Notes"/>
-                        <field name="partner_last_call_date" string="Last Call Date"/>
-                        <field name="partner_sf_followup_date" string="SF Followup Date"/>
+
+                    <separator string="Admin Notes"/>
+                    <field name="partner_admin" nolabel="1" placeholder="Admin notes..."
+                           style="font-family:monospace; white-space:pre-wrap;"/>
+
+                    <group string="Payments">
+                        <group>
+                            <field name="sale_payment_1"      string="1st Payment"/>
+                            <field name="sale_payment_date_1" string="1st Payment Date"/>
+                            <field name="sale_payment_2"      string="2nd Payment"/>
+                            <field name="sale_payment_date_2" string="2nd Payment Date"/>
+                            <field name="sale_payment_3"      string="3rd Payment"/>
+                            <field name="sale_payment_date_3" string="3rd Payment Date"/>
+                            <field name="sale_payment_4"      string="4th Payment"/>
+                            <field name="sale_payment_date_4" string="4th Payment Date"/>
+                            <field name="sale_payment_5"      string="5th Payment"/>
+                            <field name="sale_payment_date_5" string="5th Payment Date"/>
+                        </group>
+                        <group>
+                            <field name="sale_commission_ratio" string="Commission Ratio (%)"/>
+                            <field name="sale_commission_1" string="1st Payment Commission" readonly="1" force_save="1"/>
+                            <field name="sale_commission_2" string="2nd Payment Commission" readonly="1" force_save="1"/>
+                            <field name="sale_commission_3" string="3rd Payment Commission" readonly="1" force_save="1"/>
+                            <field name="sale_commission_4" string="4th Payment Commission" readonly="1" force_save="1"/>
+                            <field name="sale_commission_5" string="5th Payment Commission" readonly="1" force_save="1"/>
+                        </group>
                     </group>
-                </group>
-
-                <separator string="Chat Log"/>
-                <field name="partner_chat_log" nolabel="1" placeholder="Chat log..." colspan="2"/>
-
-                <separator string="Description"/>
-                <field name="partner_jhm_description" nolabel="1" placeholder="Description..." colspan="2"/>
-
+                </page>
             </xpath>
 
         </field>
