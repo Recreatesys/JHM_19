@@ -34,10 +34,7 @@
 
                         <!-- File list — shown in draft only -->
                         <group invisible="state != 'draft'">
-                            <field name="file_ids"
-                                   nolabel="1"
-                                   mode="list"
-                                   context="{'default_wizard_id': active_id}"/>
+                            <field name="file_ids" nolabel="1" mode="list"/>
                         </group>
 
                         <!-- In-progress notice (shown if user closes dialog mid-import) -->
