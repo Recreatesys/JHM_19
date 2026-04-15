@@ -2,6 +2,22 @@
 <odoo>
     <data>
 
+        <!-- Child file list view (inline in wizard) -->
+        <record id="view_jhm_crm_import_file_list" model="ir.ui.view">
+            <field name="name">jhm.crm.import.file.list</field>
+            <field name="model">jhm.crm.import.file</field>
+            <field name="arch" type="xml">
+                <list editable="bottom">
+                    <field name="sequence" widget="handle"/>
+                    <field name="file_data" filename="file_name" widget="binary" string="File"/>
+                    <field name="file_name" string="File Name"/>
+                    <field name="state" readonly="1" optional="show"/>
+                    <field name="imported_count" readonly="1" optional="show"/>
+                    <field name="skipped_count"  readonly="1" optional="show"/>
+                </list>
+            </field>
+        </record>
+
         <!-- Wizard form view -->
         <record id="view_jhm_crm_import_wizard_form" model="ir.ui.view">
             <field name="name">jhm.crm.import.wizard.form</field>
@@ -10,41 +26,58 @@
                 <form string="Import CRM Leads from XLS">
                     <sheet>
 
-                        <!-- File upload — shown in draft only -->
+                        <!-- Format + mode — shown in draft only -->
                         <group col="2" invisible="state != 'draft'">
                             <field name="import_format" widget="radio"/>
-                            <field name="import_mode" widget="radio"/>
-                            <field name="file_data" filename="file_name" widget="binary"
-                                   string="XLS File"/>
-                            <field name="file_name" invisible="1"/>
+                            <field name="import_mode"   widget="radio"/>
                         </group>
 
-                        <!-- In-progress notice (shown if user closes the dialog mid-import
-                             and re-opens the wizard record) -->
+                        <!-- File list — shown in draft only -->
+                        <group invisible="state != 'draft'">
+                            <field name="file_ids"
+                                   nolabel="1"
+                                   mode="list"
+                                   context="{'default_wizard_id': active_id}"/>
+                        </group>
+
+                        <!-- In-progress notice (shown if user closes dialog mid-import) -->
                         <group invisible="state != 'running'">
                             <div class="alert alert-info" role="status">
                                 <strong>Import in progress.</strong>
+                                File <field name="current_file_index" readonly="1" nolabel="1"
+                                            style="display:inline; width:30px;"/> of
+                                <field name="total_files" readonly="1" nolabel="1"
+                                       style="display:inline; width:30px;"/>
+                                &amp;nbsp;—&amp;nbsp;
                                 Batch <field name="current_batch" readonly="1" nolabel="1"
                                              style="display:inline; width:40px;"/> of
                                 <field name="total_batches" readonly="1" nolabel="1"
                                        style="display:inline; width:40px;"/>
-                                &amp;nbsp;—&amp;nbsp;
-                                <field name="imported_count" readonly="1" nolabel="1"
-                                       style="display:inline; width:60px;"/> imported so far.
                             </div>
                         </group>
 
                         <!-- Result section — shown after import completes -->
                         <group string="Import Result" invisible="state != 'done'">
-                            <field name="imported_count" string="Records Imported"/>
-                            <field name="skipped_count"  string="Records Skipped / Errors"/>
-                        </group>
-                        <group invisible="state != 'done'">
-                            <field name="result_log" string="Log" widget="text" nolabel="1"
-                                   style="font-family:monospace; white-space:pre-wrap;"/>
+                            <field name="grand_imported" string="Total Records Imported"/>
+                            <field name="grand_skipped"  string="Total Records Skipped / Errors"/>
                         </group>
 
-                        <field name="state" invisible="1"/>
+                        <!-- Per-file results table -->
+                        <group invisible="state != 'done'">
+                            <field name="file_ids" nolabel="1" mode="list" readonly="1">
+                                <list>
+                                    <field name="file_name"      string="File"/>
+                                    <field name="state"          string="Status"/>
+                                    <field name="imported_count" string="Imported"/>
+                                    <field name="skipped_count"  string="Skipped"/>
+                                    <field name="result_log"     string="Log" optional="show"/>
+                                </list>
+                            </field>
+                        </group>
+
+                        <field name="state"          invisible="1"/>
+                        <field name="current_file_index" invisible="1"/>
+                        <field name="total_files"    invisible="1"/>
 
                     </sheet>
 

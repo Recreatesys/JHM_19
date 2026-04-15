@@ -13,4 +13,5 @@ access_jhm_appointment_line,jhm.appointment.line,model_jhm_appointment_line,base
 access_jhm_follow_up_line,jhm.follow.up.line,model_jhm_follow_up_line,base.group_user,1,0,0,0
 access_jhm_sales_channel_line,jhm.sales.channel.line,model_jhm_sales_channel_line,base.group_user,1,0,0,0
 access_jhm_crm_import_wizard,jhm.crm.import.wizard,model_jhm_crm_import_wizard,sales_team.group_sale_manager,1,1,1,1
+access_jhm_crm_import_file,jhm.crm.import.file,model_jhm_crm_import_file,sales_team.group_sale_manager,1,1,1,1
 access_jhm_crm_contact_sync_wizard,jhm.crm.contact.sync.wizard,model_jhm_crm_contact_sync_wizard,base.group_user,1,1,1,1

@@ -387,8 +387,12 @@ class JhmCrmImportWizard(models.TransientModel):
     _name = 'jhm.crm.import.wizard'
     _description = 'JHM CRM Lead Import Wizard'
 
-    file_data = fields.Binary('XLS File', required=True, attachment=False)
-    file_name = fields.Char('File Name')
+    file_ids           = fields.One2many('jhm.crm.import.file', 'wizard_id', string='Files')
+    current_file_id    = fields.Many2one('jhm.crm.import.file', string='Current File')
+    current_file_index = fields.Integer(default=0)
+    total_files        = fields.Integer(default=1)
+    grand_imported     = fields.Integer(default=0)
+    grand_skipped      = fields.Integer(default=0)
     import_format = fields.Selection([
         ('hk',             'JHM HK Format'),
         ('hk_opportunity', 'JHM HK Opportunity'),
@@ -909,66 +913,34 @@ class JhmCrmImportWizard(models.TransientModel):
         return vals, meta
 
     # ─────────────────────────────────────────────────────────────────────────
-    # Phase 1 — Setup: parse file, run pre-pass, store state, launch progress UI
+    # Pre-pass helper — warms all lookup caches for one set of data rows
     # ─────────────────────────────────────────────────────────────────────────
 
-    def action_import(self):
-        self.ensure_one()
-        if not self.file_data:
-            raise UserError(_('Please upload a file first.'))
+    def _run_prepass(self, data_rows, fmt, env, fallback_uid,
+                     visa_cache, source_cache, user_cache, lost_cache, stage_cache):
+        """Warm lookup caches from data_rows without writing CRM records.
+        Returns (possibly updated) fallback_uid."""
 
-        fmt = self.import_format or 'hk'
-        skip = 12 if fmt == 'vietnam' else 1
-        data_rows = _parse_file(self.file_data, skip=skip)
-        if not data_rows:
-            raise UserError(_('No data found in the file.'))
-
-        total_rows    = len(data_rows)
-        total_batches = max(1, math.ceil(total_rows / self.BATCH_SIZE))
-        _logger.info('JHM CRM Import: %d rows → %d batches of %d',
-                     total_rows, total_batches, self.BATCH_SIZE)
-
-        ctx = dict(self.env.context, **_BATCH_CTX)
-        env = self.env(context=ctx)
-
-        fallback_user = env['res.users'].search(
-            [('name', '=ilike', 'Stephano'), ('share', '=', False)], limit=1
-        )
-        fallback_uid = fallback_user.id if fallback_user else self.env.uid
-
-        stage_new     = env['crm.stage'].search([('name', 'ilike', 'New Lead')], limit=1)
-        stage_met     = env['crm.stage'].search([('name', 'ilike', 'Met & Follow Up')], limit=1)
-        stage_svc     = env['crm.stage'].search([('name', 'ilike', 'Service Agreement')], limit=1)
-
-        visa_cache   = {}
-        source_cache = {}
-        user_cache   = {}
-        lost_cache   = {}
-        stage_cache  = {}
+        def _c(row, i):
+            try:
+                return (row[i] or '').strip()
+            except IndexError:
+                return ''
 
         if fmt == 'hk_opportunity':
-            # HK Opportunity: fallback user is Stefano (not the logged-in user)
             stefano = env['res.users'].search(
                 [('name', '=ilike', 'Stefano'), ('share', '=', False)], limit=1
             )
             if stefano:
                 fallback_uid = stefano.id
-            # pre-pass
             for row in data_rows:
                 row = list(row) + [''] * max(0, 74 - len(row))
-                def _c(r, i):
-                    try:
-                        return (r[i] or '').strip()
-                    except IndexError:
-                        return ''
-                # Telesales Person (salesperson + co-owners)
                 for part in [p.strip() for p in _c(row, HKO_COL_TELESALES).split(';') if p.strip()]:
                     resolved = _HKO_USER_ALIAS.get(part.lower(), part)
-                    self._get_user(env, user_cache, resolved, fallback_uid)
-                # Ownership (process team)
+                    self._resolve_hko_user(env, user_cache, resolved, fallback_uid)
                 own = _c(row, HKO_COL_OWNERSHIP)
                 if own:
-                    self._get_user(env, user_cache, _HKO_USER_ALIAS.get(own.lower(), own), fallback_uid)
+                    self._resolve_hko_user(env, user_cache, _HKO_USER_ALIAS.get(own.lower(), own), fallback_uid)
                 sf_key = _c(row, HKO_COL_STAGE).strip().lower()
                 target, _, is_lost = _HKO_STAGE_MAP.get(sf_key, ('New Lead', None, False))
                 self._get_stage(env, stage_cache, target)
@@ -979,14 +951,8 @@ class JhmCrmImportWizard(models.TransientModel):
                          len(user_cache), len(stage_cache))
 
         elif fmt == 'vietnam':
-            # Vietnam pre-pass: warm user, stage, source, visa caches
             for row in data_rows:
                 row = list(row) + [''] * max(0, 16 - len(row))
-                def _c(r, i):
-                    try:
-                        return (r[i] or '').strip()
-                    except IndexError:
-                        return ''
                 self._get_user(env, user_cache, _c(row, VN_COL_LEAD_OWNER), fallback_uid)
                 self._get_stage(env, stage_cache, _c(row, VN_COL_LEAD_STATUS))
                 self._get_or_create_lead_source(env, source_cache, _c(row, VN_COL_LEAD_SOURCE))
@@ -997,32 +963,19 @@ class JhmCrmImportWizard(models.TransientModel):
                          len(user_cache), len(stage_cache), len(visa_cache))
 
         elif fmt == 'taiwan':
-            # Taiwan pre-pass: only need to warm user + stage caches
             for row in data_rows:
                 row = list(row) + [''] * max(0, 24 - len(row))
-                def _c(r, i):
-                    try:
-                        return (r[i] or '').strip()
-                    except IndexError:
-                        return ''
                 self._get_user(env, user_cache, _c(row, TW_COL_SALESPERSON), fallback_uid)
                 self._get_stage(env, stage_cache, _c(row, TW_COL_STAGE))
             _logger.info('JHM CRM Import (Taiwan) pre-pass: %d users, %d stages',
                          len(user_cache), len(stage_cache))
-        else:
-            # HK pre-pass
+
+        else:  # hk
             for row in data_rows:
                 row = list(row) + [''] * max(0, 30 - len(row))
-
-                def _c(r, i):
-                    try:
-                        return (r[i] or '').strip()
-                    except IndexError:
-                        return ''
-
-                self._get_or_create_visa_program(env, visa_cache,   _c(row, COL_INDUSTRY))
-                self._get_or_create_visa_program(env, visa_cache,   _c(row, COL_PREV_INDUSTRY))
-                self._get_or_create_lead_source(env, source_cache,  _c(row, COL_LEAD_SOURCE))
+                self._get_or_create_visa_program(env, visa_cache,  _c(row, COL_INDUSTRY))
+                self._get_or_create_visa_program(env, visa_cache,  _c(row, COL_PREV_INDUSTRY))
+                self._get_or_create_lead_source(env, source_cache, _c(row, COL_LEAD_SOURCE))
                 parts = [p.strip() for p in _c(row, COL_JHM_LEAD_OWNER).split(';') if p.strip()]
                 if parts:
                     self._get_user(env, user_cache, parts[0], fallback_uid)
@@ -1030,12 +983,63 @@ class JhmCrmImportWizard(models.TransientModel):
                     self._get_user(env, user_cache, part, None)
                 if _c(row, COL_LEAD_STATUS).strip().lower() == 'unqualified':
                     self._get_lost_reason(env, lost_cache, 'Unqualified')
-
             _logger.info('JHM CRM Import (HK) pre-pass: %d visa, %d sources, %d users',
                          len(visa_cache), len(source_cache), len(user_cache))
 
+        return fallback_uid
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # Phase 1 — Setup: parse file(s), run pre-pass, store state, launch progress UI
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def action_import(self):
+        self.ensure_one()
+        pending_files = self.file_ids.filtered(lambda f: f.state == 'pending').sorted('sequence')
+        if not pending_files:
+            raise UserError(_('Please upload at least one file.'))
+
+        fmt  = self.import_format or 'hk'
+        skip = 12 if fmt == 'vietnam' else 1
+
+        # Use the first pending file
+        first_file = pending_files[0]
+        data_rows = _parse_file(first_file.file_data, skip=skip)
+        if not data_rows:
+            raise UserError(_('No data found in "%s".') % (first_file.file_name or 'file'))
+
+        total_rows    = len(data_rows)
+        total_batches = max(1, math.ceil(total_rows / self.BATCH_SIZE))
+        total_files   = len(pending_files)
+        _logger.info('JHM CRM Import: file 1/%d — %d rows → %d batches',
+                     total_files, total_rows, total_batches)
+
+        ctx = dict(self.env.context, **_BATCH_CTX)
+        env = self.env(context=ctx)
+
+        fallback_user = env['res.users'].search(
+            [('name', '=ilike', 'Stephano'), ('share', '=', False)], limit=1
+        )
+        fallback_uid = fallback_user.id if fallback_user else self.env.uid
+
+        stage_new = env['crm.stage'].search([('name', 'ilike', 'New Lead')],        limit=1)
+        stage_met = env['crm.stage'].search([('name', 'ilike', 'Met & Follow Up')], limit=1)
+        stage_svc = env['crm.stage'].search([('name', 'ilike', 'Service Agreement')], limit=1)
+
+        visa_cache   = {}
+        source_cache = {}
+        user_cache   = {}
+        lost_cache   = {}
+        stage_cache  = {}
+
+        fallback_uid = self._run_prepass(
+            data_rows, fmt, env, fallback_uid,
+            visa_cache, source_cache, user_cache, lost_cache, stage_cache,
+        )
+
         env.flush_all()
         env.invalidate_all()
+
+        first_file.write({'state': 'running'})
 
         self.write({
             'state':               'running',
@@ -1045,6 +1049,11 @@ class JhmCrmImportWizard(models.TransientModel):
             'imported_count':      0,
             'skipped_count':       0,
             'result_log':          False,
+            'current_file_id':     first_file.id,
+            'current_file_index':  0,
+            'total_files':         total_files,
+            'grand_imported':      0,
+            'grand_skipped':       0,
             'import_visa_cache':   json.dumps(visa_cache),
             'import_source_cache': json.dumps(source_cache),
             'import_user_cache':   json.dumps(user_cache),
@@ -1066,6 +1075,9 @@ class JhmCrmImportWizard(models.TransientModel):
                 'wizard_id':    self.id,
                 'total_batches': total_batches,
                 'total_rows':    total_rows,
+                'total_files':   total_files,
+                'file_index':    0,
+                'file_name':     first_file.file_name or '',
             },
         }
 
@@ -1078,17 +1090,22 @@ class JhmCrmImportWizard(models.TransientModel):
 
         if self.state == 'done':
             return {
-                'state':         'done',
-                'current_batch': self.current_batch,
-                'total_batches': self.total_batches,
-                'imported':      self.imported_count,
-                'skipped':       self.skipped_count,
-                'log':           self.result_log or '',
+                'state':          'done',
+                'current_batch':  self.current_batch,
+                'total_batches':  self.total_batches,
+                'imported':       self.imported_count,
+                'skipped':        self.skipped_count,
+                'grand_imported': self.grand_imported,
+                'grand_skipped':  self.grand_skipped,
+                'log':            self.result_log or '',
+                'file_index':     self.current_file_index,
+                'total_files':    self.total_files,
+                'file_name':      self.current_file_id.file_name if self.current_file_id else '',
             }
 
-        # Re-parse file to get rows (fast; avoids storing 25 MB of JSON)
+        # Re-parse current file to get rows (avoids storing 25 MB of JSON)
         skip = 12 if self.import_format_stored == 'vietnam' else 1
-        data_rows = _parse_file(self.file_data, skip=skip)
+        data_rows = _parse_file(self.current_file_id.file_data, skip=skip)
 
         visa_cache   = json.loads(self.import_visa_cache   or '{}')
         source_cache = json.loads(self.import_source_cache or '{}')
@@ -1253,42 +1270,159 @@ class JhmCrmImportWizard(models.TransientModel):
         next_batch     = batch_num + 1
         total_imported = (self.imported_count or 0) + new_imported
         total_skipped  = (self.skipped_count  or 0) + new_skipped
-        is_done        = next_batch >= self.total_batches
+        file_batches_done = next_batch >= self.total_batches
 
-        # Build log text — keep running errors, summarise at the end
+        # Build log text — keep running errors, summarise at end of each file
         existing_errors = [l for l in (self.result_log or '').split('\n') if l.strip()]
         all_errors      = existing_errors + log_lines
-        if is_done:
+        if file_batches_done:
             log_text = (
                 f'Imported: {total_imported}  |  Skipped/Errors: {total_skipped}\n' +
                 ('\nErrors (first 20):\n' + '\n'.join(all_errors[:20]) if all_errors else '')
             )
         else:
-            log_text = '\n'.join(all_errors[-50:])   # keep last 50 error lines while running
+            log_text = '\n'.join(all_errors[-50:])
 
-        write_vals = {
-            'current_batch': next_batch,
-            'imported_count': total_imported,
-            'skipped_count':  total_skipped,
-            'result_log':     log_text,
-            'state':          'done' if is_done else 'running',
-        }
-        if is_done:
-            # Free the large cache fields
-            write_vals.update({
-                'import_visa_cache':   False,
-                'import_source_cache': False,
-                'import_user_cache':   False,
-                'import_lost_cache':   False,
-                'import_stage_cache':  False,
+        # ── Not done with current file yet ────────────────────────────────
+        if not file_batches_done:
+            self.write({
+                'current_batch':  next_batch,
+                'imported_count': total_imported,
+                'skipped_count':  total_skipped,
+                'result_log':     log_text,
             })
-        self.write(write_vals)
+            return {
+                'state':          'running',
+                'current_batch':  next_batch,
+                'total_batches':  self.total_batches,
+                'imported':       total_imported,
+                'skipped':        total_skipped,
+                'grand_imported': (self.grand_imported or 0) + total_imported,
+                'grand_skipped':  (self.grand_skipped  or 0) + total_skipped,
+                'log':            '',
+                'file_index':     self.current_file_index,
+                'total_files':    self.total_files,
+                'file_name':      self.current_file_id.file_name if self.current_file_id else '',
+            }
 
+        # ── Current file finished — save results to file record ───────────
+        if self.current_file_id:
+            self.current_file_id.write({
+                'state':          'done',
+                'imported_count': total_imported,
+                'skipped_count':  total_skipped,
+                'result_log':     log_text,
+            })
+
+        new_grand_imported = (self.grand_imported or 0) + total_imported
+        new_grand_skipped  = (self.grand_skipped  or 0) + total_skipped
+
+        # ── Find next pending file ────────────────────────────────────────
+        next_files = self.file_ids.filtered(lambda f: f.state == 'pending').sorted('sequence')
+
+        if next_files:
+            next_file = next_files[0]
+            fmt  = self.import_format_stored or 'hk'
+            skip = 12 if fmt == 'vietnam' else 1
+            next_data_rows = _parse_file(next_file.file_data, skip=skip)
+
+            if not next_data_rows:
+                # Empty file — mark as done and treat it as finished
+                next_file.write({
+                    'state': 'done', 'imported_count': 0, 'skipped_count': 0,
+                    'result_log': 'No data found in file.',
+                })
+                # Fall through to all-done below (no more files check happens on next call)
+                next_files = self.file_ids.filtered(lambda f: f.state == 'pending').sorted('sequence')
+
+            if next_files:
+                next_file = next_files[0]
+                next_data_rows = _parse_file(next_file.file_data, skip=skip)
+
+                next_total_rows    = len(next_data_rows)
+                next_total_batches = max(1, math.ceil(next_total_rows / self.BATCH_SIZE))
+                next_file_index    = self.current_file_index + 1
+
+                ctx      = dict(self.env.context, **_BATCH_CTX)
+                env_pre  = self.env(context=ctx)
+                new_fallback_uid = self.import_fallback_uid or self.env.uid
+                new_visa_cache   = {}
+                new_source_cache = {}
+                new_user_cache   = {}
+                new_lost_cache   = {}
+                new_stage_cache  = {}
+                new_fallback_uid = self._run_prepass(
+                    next_data_rows, fmt, env_pre, new_fallback_uid,
+                    new_visa_cache, new_source_cache, new_user_cache,
+                    new_lost_cache, new_stage_cache,
+                )
+                env_pre.flush_all()
+                env_pre.invalidate_all()
+
+                next_file.write({'state': 'running'})
+
+                self.write({
+                    'state':               'running',
+                    'current_file_id':     next_file.id,
+                    'current_file_index':  next_file_index,
+                    'total_rows':          next_total_rows,
+                    'total_batches':       next_total_batches,
+                    'current_batch':       0,
+                    'imported_count':      0,
+                    'skipped_count':       0,
+                    'result_log':          False,
+                    'grand_imported':      new_grand_imported,
+                    'grand_skipped':       new_grand_skipped,
+                    'import_visa_cache':   json.dumps(new_visa_cache),
+                    'import_source_cache': json.dumps(new_source_cache),
+                    'import_user_cache':   json.dumps(new_user_cache),
+                    'import_lost_cache':   json.dumps(new_lost_cache),
+                    'import_stage_cache':  json.dumps(new_stage_cache),
+                    'import_fallback_uid': new_fallback_uid,
+                })
+
+                _logger.info('JHM CRM Import: advancing to file %d/%d (%s)',
+                             next_file_index + 1, self.total_files, next_file.file_name)
+                return {
+                    'state':          'running',
+                    'current_batch':  0,
+                    'total_batches':  next_total_batches,
+                    'total_rows':     next_total_rows,
+                    'imported':       0,
+                    'skipped':        0,
+                    'grand_imported': new_grand_imported,
+                    'grand_skipped':  new_grand_skipped,
+                    'log':            '',
+                    'file_index':     next_file_index,
+                    'total_files':    self.total_files,
+                    'file_name':      next_file.file_name or '',
+                }
+
+        # ── All files done ────────────────────────────────────────────────
+        self.write({
+            'state':               'done',
+            'current_batch':       next_batch,
+            'imported_count':      total_imported,
+            'skipped_count':       total_skipped,
+            'result_log':          log_text,
+            'grand_imported':      new_grand_imported,
+            'grand_skipped':       new_grand_skipped,
+            'import_visa_cache':   False,
+            'import_source_cache': False,
+            'import_user_cache':   False,
+            'import_lost_cache':   False,
+            'import_stage_cache':  False,
+        })
         return {
-            'state':         'done' if is_done else 'running',
-            'current_batch': next_batch,
-            'total_batches': self.total_batches,
-            'imported':      total_imported,
-            'skipped':       total_skipped,
-            'log':           log_text if is_done else '',
+            'state':          'done',
+            'current_batch':  next_batch,
+            'total_batches':  self.total_batches,
+            'imported':       total_imported,
+            'skipped':        total_skipped,
+            'grand_imported': new_grand_imported,
+            'grand_skipped':  new_grand_skipped,
+            'log':            log_text,
+            'file_index':     self.current_file_index,
+            'total_files':    self.total_files,
+            'file_name':      '',
         }

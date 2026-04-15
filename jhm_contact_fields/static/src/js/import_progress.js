@@ -14,11 +14,19 @@ class JhmImportProgress extends Component {
         const p = this.props.action.params || {};
         this.state = useState({
             wizardId:     p.wizard_id,
+            // per-file progress
             totalBatches: p.total_batches || 1,
             totalRows:    p.total_rows    || 0,
             currentBatch: 0,
+            // counts
             imported:     0,
             skipped:      0,
+            grandImported: 0,
+            grandSkipped:  0,
+            // file tracking
+            totalFiles:   p.total_files  || 1,
+            fileIndex:    p.file_index   || 0,
+            fileName:     p.file_name    || "",
             status:       "running",   // running | done | error
             log:          "",
             error:        "",
@@ -26,8 +34,8 @@ class JhmImportProgress extends Component {
 
         this._running = true;
 
-        onMounted(()       => this._processLoop());
-        onWillUnmount(()   => { this._running = false; });
+        onMounted(()     => this._processLoop());
+        onWillUnmount(() => { this._running = false; });
     }
 
     async _processLoop() {
@@ -48,9 +56,24 @@ class JhmImportProgress extends Component {
 
             if (!this._running) break;
 
-            this.state.currentBatch = result.current_batch;
-            this.state.imported     = result.imported;
-            this.state.skipped      = result.skipped;
+            // Update per-file progress
+            this.state.currentBatch  = result.current_batch;
+            this.state.totalBatches  = result.total_batches;
+            this.state.imported      = result.imported;
+            this.state.skipped       = result.skipped;
+            this.state.grandImported = result.grand_imported ?? this.state.grandImported;
+            this.state.grandSkipped  = result.grand_skipped  ?? this.state.grandSkipped;
+
+            // Update file info (may change when advancing to next file)
+            if (result.file_index !== undefined) {
+                this.state.fileIndex = result.file_index;
+            }
+            if (result.total_files !== undefined) {
+                this.state.totalFiles = result.total_files;
+            }
+            if (result.file_name !== undefined) {
+                this.state.fileName = result.file_name;
+            }
 
             if (result.state === "done") {
                 this.state.status = "done";
@@ -73,6 +96,12 @@ class JhmImportProgress extends Component {
     get progressLabel() {
         const { currentBatch, totalBatches } = this.state;
         return `Batch ${currentBatch} / ${totalBatches}`;
+    }
+
+    get fileLabel() {
+        const { fileIndex, totalFiles, fileName } = this.state;
+        const idx = `File ${fileIndex + 1} / ${totalFiles}`;
+        return fileName ? `${idx}: ${fileName}` : idx;
     }
 
     onClose() {

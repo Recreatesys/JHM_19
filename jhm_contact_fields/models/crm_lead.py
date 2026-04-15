@@ -337,6 +337,22 @@ class CrmLead(models.Model):
         elif ttc in ('tbd', False, None) and 'time_to_close' in vals:
             vals['time_to_close_set_date'] = False
 
+    # ── Stage isolation per company ───────────────────────────────────────
+    @api.model
+    def _read_group_stage_ids(self, stages, domain):
+        """Restrict Kanban columns and the status-bar to stages that belong
+        to the current company (or have no company set — shared stages)."""
+        company_id = self.env.company.id
+        search_domain = [
+            '|',
+            ('id', 'in', stages.ids),
+            '|',
+            ('company_id', '=', company_id),
+            ('company_id', '=', False),
+        ]
+        stage_ids = stages.sudo()._search(search_domain, order=stages._order)
+        return stages.browse(stage_ids)
+
     # ── Stage → probability (HK company only) ────────────────────────────
     def _apply_hk_stage_probability(self):
         """If the opportunity belongs to John Hu Migration Consulting Ltd.,

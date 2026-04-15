@@ -6,6 +6,7 @@
     'depends': ['base', 'contacts', 'crm', 'documents', 'sale', 'jhm_partner_fullname'],
     'data': [
         'security/ir.model.access.csv',
+        'security/crm_stage_rules.xml',
         'data/jhm_data.xml',
         'views/res_partner_views.xml',
         'views/crm_lead_views.xml',

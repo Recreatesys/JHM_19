@@ -1,13 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="jhm_contact_fields.ImportProgress">
-        <div class="o_jhm_import_progress p-4" style="min-width: 420px; max-width: 560px;">
+        <div class="o_jhm_import_progress p-4" style="min-width: 460px; max-width: 600px;">
 
             <h5 class="mb-3 fw-bold">Importing CRM Records</h5>
 
             <!-- ── Running ──────────────────────────────────────────────── -->
             <t t-if="state.status === 'running'">
 
+                <!-- File label -->
+                <div class="d-flex justify-content-between align-items-baseline mb-1">
+                    <span class="fw-semibold small text-primary" t-esc="fileLabel"/>
+                    <span class="text-muted small">
+                        Grand total: <strong t-esc="state.grandImported"/> imported
+                    </span>
+                </div>
+
+                <!-- Batch progress label -->
                 <div class="d-flex justify-content-between align-items-baseline mb-1">
                     <span class="text-muted small" t-esc="progressLabel"/>
                     <span class="fw-semibold small"><t t-esc="progressPercent"/>%</span>
@@ -24,7 +33,7 @@
                 </div>
 
                 <div class="d-flex gap-4 text-muted small">
-                    <span><i class="fa fa-check-circle text-success"/> Imported: <strong t-esc="state.imported"/></span>
+                    <span><i class="fa fa-check-circle text-success"/> This file: <strong t-esc="state.imported"/></span>
                     <span><i class="fa fa-exclamation-circle text-warning"/> Skipped: <strong t-esc="state.skipped"/></span>
                     <span><i class="fa fa-spinner fa-spin"/> Processing…</span>
                 </div>
@@ -36,13 +45,17 @@
 
                 <div class="alert alert-success py-2 mb-3">
                     <strong>Import complete!</strong>
-                    &amp;nbsp; Imported: <strong t-esc="state.imported"/>
-                    &amp;nbsp;|&amp;nbsp; Skipped: <strong t-esc="state.skipped"/>
+                    &amp;nbsp;
+                    <t t-if="state.totalFiles > 1">
+                        <strong t-esc="state.totalFiles"/> files processed —
+                    </t>
+                    Imported: <strong t-esc="state.grandImported"/>
+                    &amp;nbsp;|&amp;nbsp; Skipped: <strong t-esc="state.grandSkipped"/>
                 </div>
 
                 <t t-if="state.log">
                     <div class="mb-3">
-                        <small class="text-muted">Log:</small>
+                        <small class="text-muted">Last file log:</small>
                         <pre class="bg-light border rounded p-2 small mt-1"
                              style="max-height: 180px; overflow-y: auto; white-space: pre-wrap;"
                              t-esc="state.log"/>

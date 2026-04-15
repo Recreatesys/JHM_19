@@ -1,6 +1,18 @@
 from odoo import fields, models, api
 
 
+class CrmStage(models.Model):
+    """Add company_id to crm.stage so pipelines can be isolated per company."""
+    _inherit = 'crm.stage'
+
+    company_id = fields.Many2one(
+        'res.company',
+        string='Company',
+        index=True,
+        help='Restrict this stage to one company. Leave empty for shared stages.',
+    )
+
+
 class JhmBackground(models.Model):
     _name = 'jhm.background'
     _description = 'JHM Background'
