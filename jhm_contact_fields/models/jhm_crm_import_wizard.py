@@ -34,15 +34,15 @@ COL_COUNTRY             = 17
 COL_COMMISSION          = 18
 COL_INDUSTRY            = 19
 COL_PREV_INDUSTRY       = 20
-COL_OCC_VISA_STATE      = 21
-COL_APPOINTMENT_DATE    = 22
-COL_APPOINTMENT_NOTES   = 23
-COL_LAST_CALL_DATE      = 24
-COL_FOLLOWUP_DATE       = 25
-COL_CHAT_LOG            = 26
-COL_PAID                = 27
-COL_SPOUSE_PHONE        = 28
-COL_SPOUSE_EMAIL        = 29
+COL_SPOUSE_PHONE        = 21   # Spouse Mobile
+COL_SPOUSE_EMAIL        = 22   # Spouse Email
+COL_OCC_VISA_STATE      = 23   # Occupation / Visa / State → immigration_country
+COL_APPOINTMENT_DATE    = 24
+COL_APPOINTMENT_NOTES   = 25
+COL_LAST_CALL_DATE      = 26
+COL_FOLLOWUP_DATE       = 27
+COL_CHAT_LOG            = 28
+COL_PAID                = 29
 
 # ── Column indices — JHM Taiwan format ───────────────────────────────────────
 TW_COL_NAME                    = 0
@@ -767,6 +767,7 @@ class JhmCrmImportWizard(models.TransientModel):
             'is_lost':     is_lost,
             'match_email': c(VN_COL_EMAIL),
             'match_phone': c(VN_COL_MOBILE),
+            'user_name':   c(VN_COL_LEAD_OWNER),
         }
         return vals, meta
 
@@ -1135,6 +1136,7 @@ class JhmCrmImportWizard(models.TransientModel):
         log_lines       = []
         new_skipped     = 0
 
+        import_company_id = self.env.company.id
         for i, row in enumerate(batch_rows):
             row_num = start + i + 2   # +2: header row + 1-based
             try:
@@ -1158,6 +1160,7 @@ class JhmCrmImportWizard(models.TransientModel):
                         stage_new_id, stage_met_id, stage_svc_id,
                         visa_cache, source_cache, user_cache, lost_cache,
                     )
+                vals['company_id'] = import_company_id
                 batch_vals_list.append(vals)
                 batch_meta_list.append(meta)
             except Exception as exc:
@@ -1171,15 +1174,18 @@ class JhmCrmImportWizard(models.TransientModel):
             self.env.cr.execute(f'SAVEPOINT {sp}')
             try:
                 if is_update_mode:
-                    # ── UPDATE mode: match existing opportunity, write spouse fields only ──
+                    # ── UPDATE mode: match existing opportunity, overwrite all fields ──
+                    matched_leads = []
+                    matched_meta  = []
+                    company_id = self.env.company.id
                     for vals, meta in zip(batch_vals_list, batch_meta_list):
                         email = meta.get('match_email')
                         phone = meta.get('match_phone')
                         if not email and not phone:
                             new_skipped += 1
                             continue
-                        # Find existing opportunity by email or phone
-                        domain = [('type', '=', 'opportunity')]
+                        # Find existing opportunity by email or phone (same company only)
+                        domain = [('type', '=', 'opportunity'), ('company_id', '=', company_id)]
                         if email and phone:
                             domain += ['|', ('email_from', '=', email), ('phone', '=', phone)]
                         elif email:
@@ -1191,26 +1197,68 @@ class JhmCrmImportWizard(models.TransientModel):
                             new_skipped += 1
                             log_lines.append(f'No match: email={email} phone={phone}')
                             continue
-                        update_vals = {}
+                        # Write all parsed fields from vals
+                        update_vals = dict(vals)
+                        # Spouse fields come from meta (not in vals)
                         if meta.get('spouse_phone'):
                             update_vals['partner_spouse_phone'] = meta['spouse_phone']
                         if meta.get('spouse_email'):
                             update_vals['partner_spouse_email'] = meta['spouse_email']
+                        # Remove identity/match keys that should not be written as fields
+                        update_vals.pop('type', None)
                         if update_vals:
                             lead.write(update_vals)
+                        matched_leads.append(lead)
+                        matched_meta.append(meta)
                         new_imported += 1
                     env.flush_all()
 
+                    # Backfill create_date if provided
+                    date_updates = [
+                        (meta['create_date'], lead.id)
+                        for lead, meta in zip(matched_leads, matched_meta)
+                        if meta.get('create_date')
+                    ]
+                    if date_updates:
+                        self.env.cr.executemany(
+                            'UPDATE crm_lead SET create_date = %s WHERE id = %s',
+                            date_updates,
+                        )
+
+                    # Mark as lost (archive) if flagged
+                    lost_ids = [
+                        lead.id
+                        for lead, meta in zip(matched_leads, matched_meta)
+                        if meta.get('is_lost')
+                    ]
+                    if lost_ids:
+                        self.env.cr.execute(
+                            'UPDATE crm_lead SET active = false WHERE id = ANY(%s)',
+                            [lost_ids],
+                        )
+                    # Restore active if no longer lost
+                    restore_ids = [
+                        lead.id
+                        for lead, meta in zip(matched_leads, matched_meta)
+                        if not meta.get('is_lost')
+                    ]
+                    if restore_ids:
+                        self.env.cr.execute(
+                            'UPDATE crm_lead SET active = true WHERE id = ANY(%s)',
+                            [restore_ids],
+                        )
+
                 else:
                     # ── CREATE mode ───────────────────────────────────────────────────────
-                    # HK Opportunity: skip rows where an opportunity with same email/phone exists
+                    # HK Opportunity: skip rows where an opportunity with same email/phone exists in same company
                     if is_hk_opp_format:
                         filtered_vals = []
                         filtered_meta = []
+                        company_id = self.env.company.id
                         for vals, meta in zip(batch_vals_list, batch_meta_list):
                             email = meta.get('match_email')
                             phone = meta.get('match_phone')
-                            domain = [('type', '=', 'opportunity')]
+                            domain = [('type', '=', 'opportunity'), ('company_id', '=', company_id)]
                             if email and phone:
                                 domain += ['|', ('email_from', '=', email), ('phone', '=', phone)]
                             elif email:

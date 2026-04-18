@@ -305,4 +305,54 @@
             <xpath expr="//t[@t-name='card']/field[@name='partner_name']" position="replace"/>
         </field>
     </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         CRM Stage — list / form views with company_id + menu entry
+         ══════════════════════════════════════════════════════════════════════ -->
+
+    <record id="view_crm_stage_list_jhm" model="ir.ui.view">
+        <field name="name">crm.stage.list.jhm</field>
+        <field name="model">crm.stage</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="team_ids" widget="many2many_tags" optional="show"/>
+                <field name="company_id" optional="show"/>
+                <field name="is_won"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_crm_stage_form_jhm" model="ir.ui.view">
+        <field name="name">crm.stage.form.jhm</field>
+        <field name="model">crm.stage</field>
+        <field name="arch" type="xml">
+            <form string="Pipeline Stage">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="sequence"/>
+                        <field name="team_ids" widget="many2many_tags"/>
+                        <field name="company_id"/>
+                        <field name="is_won"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_crm_stage_jhm" model="ir.actions.act_window">
+        <field name="name">Pipeline Stages</field>
+        <field name="res_model">crm.stage</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_crm_stage_jhm"
+              name="Pipeline Stages"
+              parent="crm.crm_menu_config"
+              action="action_crm_stage_jhm"
+              sequence="10"
+              groups="base.group_system"/>
+
 </odoo>

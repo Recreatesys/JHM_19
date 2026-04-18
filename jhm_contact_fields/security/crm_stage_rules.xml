@@ -3,9 +3,9 @@
     <!--
         CRM Stage company-isolation rule.
 
-        Stages visible to a user are those where:
-          - company_id is not set  (shared / legacy stage — visible to everyone)
-          - OR company_id is one of the companies the user belongs to
+        Stages visible to a user are those where company_id matches the
+        user's current company.  Stages with company_id not set are hidden
+        (every stage MUST have a company assigned for proper isolation).
 
         This rule filters the stage_id Many2one dropdown in form/list views.
         The _read_group_stage_ids override in crm_lead.py handles the Kanban
@@ -16,7 +16,7 @@
         <field name="model_id" ref="crm.model_crm_stage"/>
         <field name="global" eval="True"/>
         <field name="domain_force">
-            ['|', ('company_id', '=', False), ('company_id', 'in', user.company_ids.ids)]
+            [('company_id', '=', user.company_id.id)]
         </field>
         <field name="perm_read"   eval="True"/>
         <field name="perm_write"  eval="False"/>
