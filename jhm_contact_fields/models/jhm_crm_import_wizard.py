@@ -1250,32 +1250,31 @@ class JhmCrmImportWizard(models.TransientModel):
 
                 else:
                     # ── CREATE mode ───────────────────────────────────────────────────────
-                    # HK Opportunity: skip rows where an opportunity with same email/phone exists in same company
-                    if is_hk_opp_format:
-                        filtered_vals = []
-                        filtered_meta = []
-                        company_id = self.env.company.id
-                        for vals, meta in zip(batch_vals_list, batch_meta_list):
-                            email = meta.get('match_email')
-                            phone = meta.get('match_phone')
-                            domain = [('type', '=', 'opportunity'), ('company_id', '=', company_id)]
-                            if email and phone:
-                                domain += ['|', ('email_from', '=', email), ('phone', '=', phone)]
-                            elif email:
-                                domain += [('email_from', '=', email)]
-                            elif phone:
-                                domain += [('phone', '=', phone)]
-                            else:
-                                filtered_vals.append(vals)
-                                filtered_meta.append(meta)
-                                continue
-                            if not CrmLead.search(domain, limit=1):
-                                filtered_vals.append(vals)
-                                filtered_meta.append(meta)
-                            else:
-                                new_skipped += 1
-                        batch_vals_list = filtered_vals
-                        batch_meta_list = filtered_meta
+                    # Skip rows where an opportunity with same email/phone already exists in same company
+                    filtered_vals = []
+                    filtered_meta = []
+                    company_id = self.env.company.id
+                    for vals, meta in zip(batch_vals_list, batch_meta_list):
+                        email = meta.get('match_email')
+                        phone = meta.get('match_phone')
+                        domain = [('type', '=', 'opportunity'), ('company_id', '=', company_id)]
+                        if email and phone:
+                            domain += ['|', ('email_from', '=', email), ('phone', '=', phone)]
+                        elif email:
+                            domain += [('email_from', '=', email)]
+                        elif phone:
+                            domain += [('phone', '=', phone)]
+                        else:
+                            filtered_vals.append(vals)
+                            filtered_meta.append(meta)
+                            continue
+                        if not CrmLead.search(domain, limit=1):
+                            filtered_vals.append(vals)
+                            filtered_meta.append(meta)
+                        else:
+                            new_skipped += 1
+                    batch_vals_list = filtered_vals
+                    batch_meta_list = filtered_meta
                     leads = CrmLead.create(batch_vals_list)
                     env.flush_all()
 
