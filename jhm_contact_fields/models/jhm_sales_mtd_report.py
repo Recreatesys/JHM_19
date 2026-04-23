@@ -61,13 +61,15 @@ class JhmSalesMtdLine(models.Model):
                   AND date_trunc('month', partner_last_call_date)::date = cur_month.m
                 GROUP BY user_id
             ),
-            -- Qualified: created in current month, probability >= 50
+            -- Qualified: created in current month, last call date in current month, prob >= 50
             c_ql AS (
                 SELECT user_id, COUNT(*) AS cnt
                 FROM crm_lead, cur_month
                 WHERE type = 'opportunity' AND active = true
                   AND user_id IS NOT NULL
                   AND date_trunc('month', create_date AT TIME ZONE 'UTC')::date = cur_month.m
+                  AND partner_last_call_date IS NOT NULL
+                  AND date_trunc('month', partner_last_call_date)::date = cur_month.m
                   AND probability >= 50
                 GROUP BY user_id
             ),
@@ -119,15 +121,16 @@ class JhmSalesMtdLine(models.Model):
                   AND date_trunc('month', partner_last_call_date)::date = cur_month.m
                 GROUP BY user_id
             ),
-            -- Qualified: created BEFORE current month, prob >= 50, updated in current month
+            -- Qualified: created BEFORE current month, last call date in current month, prob >= 50
             p_ql AS (
                 SELECT user_id, COUNT(*) AS cnt
                 FROM crm_lead, cur_month
                 WHERE type = 'opportunity' AND active = true
                   AND user_id IS NOT NULL
                   AND date_trunc('month', create_date AT TIME ZONE 'UTC')::date < cur_month.m
+                  AND partner_last_call_date IS NOT NULL
+                  AND date_trunc('month', partner_last_call_date)::date = cur_month.m
                   AND probability >= 50
-                  AND date_trunc('month', write_date AT TIME ZONE 'UTC')::date = cur_month.m
                 GROUP BY user_id
             ),
             -- Appointment: created BEFORE current month, appointment_date in current month
