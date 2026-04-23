@@ -45,9 +45,6 @@ class JhmSalesMtdLine(models.Model):
             cur_month AS (
                 SELECT date_trunc('month', now() AT TIME ZONE 'UTC')::date AS m
             ),
-            prev_month AS (
-                SELECT (date_trunc('month', now() AT TIME ZONE 'UTC') - interval '1 month')::date AS m
-            ),
 
             -- ═══════════════════════════════════════════════════════════
             -- CURRENT MONTH
@@ -103,13 +100,13 @@ class JhmSalesMtdLine(models.Model):
             -- PREVIOUS
             -- ═══════════════════════════════════════════════════════════
 
-            -- New Leads: created in previous month (one month before)
+            -- New Leads: all leads created before current month
             p_nl AS (
                 SELECT user_id, COUNT(*) AS cnt
-                FROM crm_lead, prev_month
+                FROM crm_lead, cur_month
                 WHERE type = 'opportunity' AND active = true
                   AND user_id IS NOT NULL
-                  AND date_trunc('month', create_date AT TIME ZONE 'UTC')::date = prev_month.m
+                  AND date_trunc('month', create_date AT TIME ZONE 'UTC')::date < cur_month.m
                 GROUP BY user_id
             ),
             -- Qualified: created BEFORE current month, prob >= 50, updated in current month
