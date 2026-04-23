@@ -27,6 +27,7 @@
             'jhm_contact_fields/static/src/js/import_progress.js',
         ],
     },
+    'post_init_hook': '_post_init_hook',
     'installable': True,
     'auto_install': False,
     'license': 'LGPL-3',

@@ -26,8 +26,9 @@
 
     <!--
         CRM Lead: show only leads from the current company.
-        Overrides the base crm.crm_lead_company_rule which uses
-        company_ids (all user companies) — too broad for JHM.
+        Our global rule enforces current company. We also need a
+        post_init_hook to patch the base rules (noupdate=True)
+        that use company_ids (all user companies).
     -->
     <record id="crm_lead_current_company_rule" model="ir.rule">
         <field name="name">CRM Lead: current company only</field>
