@@ -1,9 +1,21 @@
-from odoo import fields, models
+import math
+from odoo import api, fields, models
 
 
 class JhmSalesMtdLine(models.Model):
     """SQL view: one row per (salesperson × month).
-    Backs the 'Sales Report (MTD)' pivot in CRM → Reporting."""
+    Backs the 'Sales Report (MTD)' pivot in CRM → Reporting.
+
+    Definitions:
+      - New Leads:       leads assigned to the salesperson within the period
+                         (date_open falls in the month)
+      - Qualified Leads: subset of New Leads with probability >= 50%
+      - Appointment:     subset of New Leads with partner_appointment_date
+                         within the period
+      - Sales #:         sale orders created in the period from New Leads only
+      - Sales $:         total amount of those sale orders
+      - % conversions:   Qualified/New, Appointment/New, Sales/Qualified
+    """
     _name = 'jhm.sales.mtd.line'
     _description = 'Sales Report (MTD)'
     _auto = False
@@ -14,11 +26,14 @@ class JhmSalesMtdLine(models.Model):
     visa_program_id  = fields.Many2one('jhm.visa.program', string='Visa Program', readonly=True)
     month            = fields.Date(string='Month', readonly=True)
 
-    new_leads      = fields.Integer(string='New Leads',       readonly=True)
-    qualified_leads = fields.Integer(string='Qualified Leads', readonly=True)
-    appointments   = fields.Integer(string='Appointment',     readonly=True)
-    sales_count    = fields.Integer(string='Sales #',         readonly=True)
-    sales_amount   = fields.Float(string='Sales $',           readonly=True, digits=(16, 2))
+    new_leads           = fields.Integer(string='New Leads',              readonly=True)
+    qualified_leads     = fields.Integer(string='Qualified Leads',        readonly=True)
+    qualified_pct       = fields.Integer(string='% Qualified',            readonly=True)
+    appointments        = fields.Integer(string='Appointment',            readonly=True)
+    appointment_pct     = fields.Integer(string='% Appointment',          readonly=True)
+    sales_count         = fields.Integer(string='Sales #',                readonly=True)
+    sales_pct           = fields.Integer(string='% Sales',                readonly=True)
+    sales_amount        = fields.Float(string='Sales $',                  readonly=True, digits=(16, 2))
 
     def init(self):
         self.env.cr.execute("DROP VIEW IF EXISTS jhm_sales_mtd_line CASCADE")
@@ -26,89 +41,71 @@ class JhmSalesMtdLine(models.Model):
             CREATE OR REPLACE VIEW jhm_sales_mtd_line AS
             WITH
 
-            -- All (salesperson, visa_program, month) combos that have any data
-            combos AS (
-                -- leads created
-                SELECT user_id,
-                       partner_visa_program_id          AS visa_program_id,
-                       date_trunc('month', create_date AT TIME ZONE 'UTC')::date AS month
-                FROM crm_lead
-                WHERE type = 'opportunity' AND user_id IS NOT NULL
-
-                UNION
-
-                -- appointment months
-                SELECT user_id,
-                       partner_visa_program_id          AS visa_program_id,
-                       date_trunc('month', partner_appointment_date)::date AS month
-                FROM crm_lead
-                WHERE type = 'opportunity'
-                  AND user_id IS NOT NULL
-                  AND partner_appointment_date IS NOT NULL
-
-                UNION
-
-                -- sale order months (via opportunity)
-                SELECT cl.user_id,
-                       cl.partner_visa_program_id       AS visa_program_id,
-                       date_trunc('month', so.date_order AT TIME ZONE 'UTC')::date AS month
-                FROM sale_order so
-                JOIN crm_lead cl
-                    ON cl.id = so.opportunity_id
-                   AND cl.user_id IS NOT NULL
-                WHERE so.state NOT IN ('cancel')
-            ),
-
-            -- New leads: created in the month
+            -- New Leads: assigned to salesperson in the month (date_open)
             nl AS (
                 SELECT user_id,
                        partner_visa_program_id          AS visa_program_id,
-                       date_trunc('month', create_date AT TIME ZONE 'UTC')::date AS month,
+                       date_trunc('month', date_open AT TIME ZONE 'UTC')::date AS month,
                        COUNT(*) AS cnt
                 FROM crm_lead
-                WHERE type = 'opportunity' AND user_id IS NOT NULL
+                WHERE type = 'opportunity'
+                  AND user_id IS NOT NULL
+                  AND date_open IS NOT NULL
                 GROUP BY 1, 2, 3
             ),
 
-            -- Qualified leads: probability >= 30%, grouped by creation month
+            -- Qualified Leads: assigned in the month AND probability >= 50
             ql AS (
                 SELECT user_id,
                        partner_visa_program_id          AS visa_program_id,
-                       date_trunc('month', create_date AT TIME ZONE 'UTC')::date AS month,
+                       date_trunc('month', date_open AT TIME ZONE 'UTC')::date AS month,
                        COUNT(*) AS cnt
                 FROM crm_lead
                 WHERE type = 'opportunity'
                   AND user_id IS NOT NULL
-                  AND probability >= 30
+                  AND date_open IS NOT NULL
+                  AND probability >= 50
                 GROUP BY 1, 2, 3
             ),
 
-            -- Appointments: partner_appointment_date falls in the month
+            -- Appointments: assigned in the month AND appointment_date within same month
             ap AS (
                 SELECT user_id,
                        partner_visa_program_id          AS visa_program_id,
-                       date_trunc('month', partner_appointment_date)::date AS month,
+                       date_trunc('month', date_open AT TIME ZONE 'UTC')::date AS month,
                        COUNT(*) AS cnt
                 FROM crm_lead
                 WHERE type = 'opportunity'
                   AND user_id IS NOT NULL
+                  AND date_open IS NOT NULL
                   AND partner_appointment_date IS NOT NULL
+                  AND date_trunc('month', date_open AT TIME ZONE 'UTC')
+                    = date_trunc('month', partner_appointment_date)
                 GROUP BY 1, 2, 3
             ),
 
-            -- Sales: sale orders linked via opportunity, grouped by order date
+            -- Sales: sale orders from leads assigned in the period,
+            --        with order date also in the same period
             so AS (
                 SELECT cl.user_id,
                        cl.partner_visa_program_id       AS visa_program_id,
-                       date_trunc('month', s.date_order AT TIME ZONE 'UTC')::date AS month,
+                       date_trunc('month', cl.date_open AT TIME ZONE 'UTC')::date AS month,
                        COUNT(DISTINCT s.id)             AS cnt,
                        SUM(s.amount_untaxed)            AS amt
                 FROM sale_order s
                 JOIN crm_lead cl
                     ON cl.id = s.opportunity_id
                    AND cl.user_id IS NOT NULL
+                   AND cl.date_open IS NOT NULL
                 WHERE s.state NOT IN ('cancel')
+                  AND date_trunc('month', s.date_order AT TIME ZONE 'UTC')
+                    = date_trunc('month', cl.date_open AT TIME ZONE 'UTC')
                 GROUP BY 1, 2, 3
+            ),
+
+            -- All combos from new leads (the anchor)
+            combos AS (
+                SELECT DISTINCT user_id, visa_program_id, month FROM nl
             )
 
             SELECT
@@ -118,8 +115,17 @@ class JhmSalesMtdLine(models.Model):
                 c.month,
                 COALESCE(nl.cnt,  0)         AS new_leads,
                 COALESCE(ql.cnt,  0)         AS qualified_leads,
+                CASE WHEN COALESCE(nl.cnt, 0) > 0
+                     THEN CEIL(COALESCE(ql.cnt, 0)::numeric / nl.cnt * 100)::int
+                     ELSE 0 END              AS qualified_pct,
                 COALESCE(ap.cnt,  0)         AS appointments,
+                CASE WHEN COALESCE(nl.cnt, 0) > 0
+                     THEN CEIL(COALESCE(ap.cnt, 0)::numeric / nl.cnt * 100)::int
+                     ELSE 0 END              AS appointment_pct,
                 COALESCE(so.cnt,  0)         AS sales_count,
+                CASE WHEN COALESCE(ql.cnt, 0) > 0
+                     THEN CEIL(COALESCE(so.cnt, 0)::numeric / ql.cnt * 100)::int
+                     ELSE 0 END              AS sales_pct,
                 COALESCE(so.amt,  0.0)       AS sales_amount
             FROM combos c
             LEFT JOIN nl ON nl.user_id = c.user_id AND nl.visa_program_id IS NOT DISTINCT FROM c.visa_program_id AND nl.month = c.month

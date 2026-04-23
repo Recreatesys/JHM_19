@@ -26,14 +26,17 @@
         <field name="model">jhm.sales.mtd.line</field>
         <field name="arch" type="xml">
             <pivot string="Sales Report (MTD)" disable_linking="True">
-                <field name="user_id"         type="row"/>
-                <field name="visa_program_id" type="row"/>
-                <field name="month"           type="col" interval="month"/>
-                <field name="new_leads"       type="measure"/>
-                <field name="qualified_leads" type="measure"/>
-                <field name="appointments"    type="measure"/>
-                <field name="sales_count"     type="measure"/>
-                <field name="sales_amount"    type="measure"/>
+                <field name="user_id"           type="row"/>
+                <field name="visa_program_id"   type="row"/>
+                <field name="month"             type="col" interval="month"/>
+                <field name="new_leads"         type="measure"/>
+                <field name="qualified_leads"   type="measure"/>
+                <field name="qualified_pct"     type="measure"/>
+                <field name="appointments"      type="measure"/>
+                <field name="appointment_pct"   type="measure"/>
+                <field name="sales_count"       type="measure"/>
+                <field name="sales_pct"         type="measure"/>
+                <field name="sales_amount"      type="measure"/>
             </pivot>
         </field>
     </record>
@@ -44,14 +47,17 @@
         <field name="model">jhm.sales.mtd.line</field>
         <field name="arch" type="xml">
             <list string="Sales Report (MTD)" create="false" edit="false" delete="false">
-                <field name="month"           string="Month"/>
-                <field name="user_id"         string="Salesperson"/>
-                <field name="visa_program_id" string="Visa Program"/>
-                <field name="new_leads"       string="New Leads"/>
-                <field name="qualified_leads" string="Qualified Leads"/>
-                <field name="appointments"    string="Appointment"/>
-                <field name="sales_count"     string="Sales #"/>
-                <field name="sales_amount"    string="Sales $"/>
+                <field name="month"             string="Month"/>
+                <field name="user_id"           string="Salesperson"/>
+                <field name="visa_program_id"   string="Visa Program"/>
+                <field name="new_leads"         string="New Leads"/>
+                <field name="qualified_leads"   string="Qualified Leads"/>
+                <field name="qualified_pct"     string="% Qualified"/>
+                <field name="appointments"      string="Appointment"/>
+                <field name="appointment_pct"   string="% Appointment"/>
+                <field name="sales_count"       string="Sales #"/>
+                <field name="sales_pct"         string="% Sales"/>
+                <field name="sales_amount"      string="Sales $"/>
             </list>
         </field>
     </record>
