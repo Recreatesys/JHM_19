@@ -41,7 +41,7 @@ class JhmSalesMtdLine(models.Model):
             CREATE OR REPLACE VIEW jhm_sales_mtd_line AS
             WITH
 
-            -- New Leads: created in the month
+            -- New Leads: created in the month (active only)
             nl AS (
                 SELECT user_id,
                        partner_visa_program_id          AS visa_program_id,
@@ -49,6 +49,7 @@ class JhmSalesMtdLine(models.Model):
                        COUNT(*) AS cnt
                 FROM crm_lead
                 WHERE type = 'opportunity'
+                  AND active = true
                   AND user_id IS NOT NULL
                   AND create_date IS NOT NULL
                 GROUP BY 1, 2, 3
@@ -62,6 +63,7 @@ class JhmSalesMtdLine(models.Model):
                        COUNT(*) AS cnt
                 FROM crm_lead
                 WHERE type = 'opportunity'
+                  AND active = true
                   AND user_id IS NOT NULL
                   AND create_date IS NOT NULL
                   AND probability >= 50
@@ -76,6 +78,7 @@ class JhmSalesMtdLine(models.Model):
                        COUNT(*) AS cnt
                 FROM crm_lead
                 WHERE type = 'opportunity'
+                  AND active = true
                   AND user_id IS NOT NULL
                   AND create_date IS NOT NULL
                   AND partner_appointment_date IS NOT NULL
@@ -97,6 +100,7 @@ class JhmSalesMtdLine(models.Model):
                     ON cl.id = s.opportunity_id
                    AND cl.user_id IS NOT NULL
                    AND cl.create_date IS NOT NULL
+                   AND cl.active = true
                 WHERE s.state NOT IN ('cancel')
                   AND date_trunc('month', s.date_order AT TIME ZONE 'UTC')
                     = date_trunc('month', cl.create_date AT TIME ZONE 'UTC')
