@@ -87,6 +87,17 @@
                        readonly="won_status != 'pending'"/>
             </xpath>
 
+            <!-- Hide AI-calculated probability (icon, tooltip, ~XX%) -->
+            <xpath expr="//a[@name='action_set_automated_probability']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//widget[@name='pls_tooltip_button']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='automated_probability']/.." position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
             <!-- Fix email_from label — base view hardcodes string="Email", override to correct label -->
             <xpath expr="//field[@name='email_from'][@widget='email']" position="attributes">
                 <attribute name="string">Main Applicant Email</attribute>
