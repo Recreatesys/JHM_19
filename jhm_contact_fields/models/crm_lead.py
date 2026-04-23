@@ -173,7 +173,7 @@ class CrmLead(models.Model):
     partner_appointment_date_2 = fields.Date(string='2nd Appointment Date')
     partner_appointment_notes = fields.Char(string='Appointment Notes')
     partner_last_call_date = fields.Date(string='Last Call Date', tracking=True)
-    partner_sf_followup_date = fields.Date(string='SF Followup Date')
+    partner_sf_followup_date = fields.Date(string='Followup Date', tracking=True)
     partner_chat_log = fields.Text(string='Chat Log')
     partner_jhm_description = fields.Text(string='Description')
     partner_spouse_name = fields.Char(string='Spouse Name')
@@ -877,7 +877,50 @@ class CrmLead(models.Model):
             except Exception as e:
                 _logger.warning("Portal access creation failed: %s", e)
 
+        # Auto-update Last Call Date when a meaningful action occurs
+        _ACTION_FIELDS = {
+            'stage_id', 'jhm_probability', 'probability',
+            'partner_appointment_date', 'partner_appointment_date_2',
+            'partner_appointment_notes', 'partner_chat_log',
+            'partner_jhm_description', 'partner_facing_problems',
+            'partner_sf_followup_date',
+        }
+        if (_ACTION_FIELDS & set(vals)) and not self.env.context.get('jhm_import'):
+            today = fields.Date.today()
+            for rec in self:
+                if rec.partner_last_call_date != today:
+                    super(CrmLead, rec).write({'partner_last_call_date': today})
+
         return result
+
+    # ── Followup overdue notification cron ────────────────────────────────
+    @api.model
+    def _cron_followup_overdue_notification(self):
+        """Notify salesperson when Last Call Date < Followup Date and
+        probability is between 50% and 90% (inclusive)."""
+        today = fields.Date.today()
+        leads = self.search([
+            ('partner_sf_followup_date', '!=', False),
+            ('partner_sf_followup_date', '<=', today),
+            ('partner_last_call_date', '<', today),
+            ('probability', '>=', 50),
+            ('probability', '<=', 90),
+            ('user_id', '!=', False),
+            ('active', '=', True),
+            ('type', '=', 'opportunity'),
+        ])
+        for lead in leads:
+            if lead.partner_last_call_date and lead.partner_sf_followup_date \
+                    and lead.partner_last_call_date < lead.partner_sf_followup_date:
+                lead.activity_schedule(
+                    'mail.mail_activity_data_todo',
+                    date_deadline=today,
+                    summary='Followup overdue: %s' % lead.name,
+                    note='The followup date (%s) has passed and no action has been '
+                         'taken since %s. Please follow up on this opportunity.'
+                         % (lead.partner_sf_followup_date, lead.partner_last_call_date),
+                    user_id=lead.user_id.id,
+                )
 
     def action_open_contact_sync_wizard(self):
         """Open the contact sync wizard pre-loaded with this opportunity."""

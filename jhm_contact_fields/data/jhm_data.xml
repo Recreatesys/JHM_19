@@ -187,4 +187,16 @@
     <record id="vp_au_188c_ext" model="jhm.visa.program"><field name="name">AU 188C EXTENSION STREAM</field></record>
     <record id="vp_us_l1a" model="jhm.visa.program"><field name="name">US L-1A</field></record>
 
+    <!-- ─── Scheduled Action: followup overdue notification ───────────── -->
+    <record id="ir_cron_followup_overdue" model="ir.cron">
+        <field name="name">CRM: Followup Overdue Notification</field>
+        <field name="model_id" ref="crm.model_crm_lead"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_followup_overdue_notification()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+    </record>
+
 </odoo>
