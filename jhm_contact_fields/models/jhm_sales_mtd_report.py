@@ -80,19 +80,25 @@ class JhmSalesMtdLine(models.Model):
                   AND date_trunc('month', partner_appointment_date)::date = cur_month.m
                 GROUP BY user_id
             ),
-            -- Sales: orders in current month from leads created in current month
+            -- Sales: leads created in current month that have a sale order
+            --        OR have sale_total_amount > 0
             c_so AS (
                 SELECT cl.user_id,
-                       COUNT(DISTINCT s.id) AS cnt,
-                       SUM(s.amount_untaxed) AS amt
-                FROM sale_order s
-                JOIN crm_lead cl ON cl.id = s.opportunity_id
+                       COUNT(DISTINCT cl.id) AS cnt,
+                       SUM(COALESCE(so_amt.amt, 0) + CASE WHEN so_amt.amt IS NULL THEN COALESCE(cl.sale_total_amount, 0) ELSE 0 END) AS amt
+                FROM crm_lead cl
                 CROSS JOIN cur_month
+                LEFT JOIN (
+                    SELECT s.opportunity_id, SUM(s.amount_untaxed) AS amt
+                    FROM sale_order s
+                    WHERE s.state NOT IN ('cancel')
+                      AND date_trunc('month', s.date_order AT TIME ZONE 'UTC')::date = (SELECT m FROM cur_month)
+                    GROUP BY s.opportunity_id
+                ) so_amt ON so_amt.opportunity_id = cl.id
                 WHERE cl.type = 'opportunity' AND cl.active = true
                   AND cl.user_id IS NOT NULL
-                  AND s.state NOT IN ('cancel')
                   AND date_trunc('month', cl.create_date AT TIME ZONE 'UTC')::date = cur_month.m
-                  AND date_trunc('month', s.date_order AT TIME ZONE 'UTC')::date = cur_month.m
+                  AND (so_amt.amt IS NOT NULL OR COALESCE(cl.sale_total_amount, 0) > 0)
                 GROUP BY cl.user_id
             ),
 
@@ -131,19 +137,25 @@ class JhmSalesMtdLine(models.Model):
                   AND date_trunc('month', partner_appointment_date)::date = cur_month.m
                 GROUP BY user_id
             ),
-            -- Sales: orders in current month from leads created BEFORE current month
+            -- Sales: leads created BEFORE current month that have a sale order
+            --        in current month OR have sale_total_amount > 0
             p_so AS (
                 SELECT cl.user_id,
-                       COUNT(DISTINCT s.id) AS cnt,
-                       SUM(s.amount_untaxed) AS amt
-                FROM sale_order s
-                JOIN crm_lead cl ON cl.id = s.opportunity_id
+                       COUNT(DISTINCT cl.id) AS cnt,
+                       SUM(COALESCE(so_amt.amt, 0) + CASE WHEN so_amt.amt IS NULL THEN COALESCE(cl.sale_total_amount, 0) ELSE 0 END) AS amt
+                FROM crm_lead cl
                 CROSS JOIN cur_month
+                LEFT JOIN (
+                    SELECT s.opportunity_id, SUM(s.amount_untaxed) AS amt
+                    FROM sale_order s
+                    WHERE s.state NOT IN ('cancel')
+                      AND date_trunc('month', s.date_order AT TIME ZONE 'UTC')::date = (SELECT m FROM cur_month)
+                    GROUP BY s.opportunity_id
+                ) so_amt ON so_amt.opportunity_id = cl.id
                 WHERE cl.type = 'opportunity' AND cl.active = true
                   AND cl.user_id IS NOT NULL
-                  AND s.state NOT IN ('cancel')
                   AND date_trunc('month', cl.create_date AT TIME ZONE 'UTC')::date < cur_month.m
-                  AND date_trunc('month', s.date_order AT TIME ZONE 'UTC')::date = cur_month.m
+                  AND (so_amt.amt IS NOT NULL OR COALESCE(cl.sale_total_amount, 0) > 0)
                 GROUP BY cl.user_id
             ),
 
