@@ -33,7 +33,7 @@
         <field name="arch" type="xml">
             <pivot string="Sales Report (MTD)" disable_linking="True">
                 <field name="user_id"           type="row"/>
-                <field name="month"             type="col" interval="month"/>
+                <field name="period"            type="col"/>
                 <field name="new_leads"         type="measure"/>
                 <field name="qualified_leads"   type="measure"/>
                 <field name="qualified_pct"     type="measure"/>
