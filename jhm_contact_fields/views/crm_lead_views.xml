@@ -129,7 +129,7 @@
                 <field name="partner_consultation_fee_paid" string="Fee Paid"/>
                 <field name="partner_sf_creation_date"      string="SF Creation Date"/>
                 <field name="partner_appointment_date"      string="Appointment Date"/>
-                <field name="partner_appointment_date_2"   string="2nd Appointment Date"/>
+                <field name="partner_appointment_date_2"   string="2nd Appointment Date" invisible="company_id == 1"/>
                 <field name="partner_appointment_notes"     string="Appointment Notes"/>
                 <field name="partner_last_call_date"        string="Last Call Date"/>
                 <field name="partner_sf_followup_date"      string="Followup Date"/>
