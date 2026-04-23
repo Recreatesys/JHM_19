@@ -23,4 +23,18 @@
         <field name="perm_create" eval="True"/>
         <field name="perm_unlink" eval="True"/>
     </record>
+
+    <!--
+        CRM Lead: show only leads from the current company.
+        Overrides the base crm.crm_lead_company_rule which uses
+        company_ids (all user companies) — too broad for JHM.
+    -->
+    <record id="crm_lead_current_company_rule" model="ir.rule">
+        <field name="name">CRM Lead: current company only</field>
+        <field name="model_id" ref="crm.model_crm_lead"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">
+            ['|', ('company_id', '=', False), ('company_id', '=', user.company_id.id)]
+        </field>
+    </record>
 </odoo>

@@ -341,15 +341,10 @@ class CrmLead(models.Model):
     @api.model
     def _read_group_stage_ids(self, stages, domain):
         """Restrict Kanban columns / status-bar to stages belonging to the
-        current company only.  Team-based filtering is intentionally skipped
-        because users belong to sales teams across multiple companies, which
-        would defeat company isolation."""
+        current company only.  Always filters by company — even stages already
+        on records are excluded if they belong to a different company."""
         company_id = self.env.company.id
-        search_domain = [
-            '|',
-            ('id', 'in', stages.ids),
-            ('company_id', '=', company_id),
-        ]
+        search_domain = [('company_id', '=', company_id)]
         stage_ids = stages.sudo()._search(search_domain, order=stages._order)
         return stages.browse(stage_ids)
 
