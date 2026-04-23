@@ -127,7 +127,7 @@
                 <field name="partner_previous_visa_program_id" string="Prev. Visa Program"/>
                 <field name="partner_jhm_lead_source_id"       string="Lead Source"/>
                 <field name="partner_source_details"           string="Source Details"/>
-                <field name="webinar_name"                     string="Webinar Name"/>
+                <field name="webinar_name"                     string="Webinar Name" invisible="company_id == 1"/>
                 <field name="partner_migration_budget"         string="Migration Budget"/>
             </xpath>
 
