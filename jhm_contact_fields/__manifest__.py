@@ -1,6 +1,6 @@
 {
     'name': 'JHM Contact Fields',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'summary': 'Custom fields for JHM contacts and CRM leads',
     'category': 'Technical',
     'depends': ['base', 'contacts', 'crm', 'documents', 'sale', 'sale_crm', 'jhm_partner_fullname'],
