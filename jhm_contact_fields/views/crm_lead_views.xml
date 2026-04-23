@@ -394,4 +394,11 @@
               sequence="10"
               groups="base.group_system"/>
 
+    <!-- Remove default "My Pipeline" filter from CRM pipeline action -->
+    <record model="ir.actions.act_window" id="crm.crm_lead_action_pipeline">
+        <field name="context">{
+                'default_type': 'opportunity',
+        }</field>
+    </record>
+
 </odoo>
