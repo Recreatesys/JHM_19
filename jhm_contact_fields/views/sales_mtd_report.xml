@@ -7,9 +7,8 @@
         <field name="model">jhm.sales.mtd.line</field>
         <field name="arch" type="xml">
             <search string="Sales Report (MTD)">
-                <filter string="This Month vs Previous" name="comparison"
-                        domain="[('month','&gt;=', (context_today() - relativedelta(months=1)).strftime('%Y-%m-01')),
-                                 ('month','&lt;=', context_today().strftime('%Y-%m-01'))]"/>
+                <filter string="Current Month vs Previous" name="comparison"
+                        domain="[]"/>
                 <filter string="This Month" name="this_month"
                         domain="[('month','=', context_today().strftime('%Y-%m-01'))]"/>
                 <filter string="Last 3 Months" name="last_3"
@@ -19,6 +18,7 @@
                 <separator/>
                 <field name="user_id"         string="Salesperson"/>
                 <field name="visa_program_id" string="Visa Program"/>
+                <field name="period"          string="Period"/>
             </search>
         </field>
     </record>
@@ -31,7 +31,7 @@
             <pivot string="Sales Report (MTD)" disable_linking="True">
                 <field name="user_id"           type="row"/>
                 <field name="visa_program_id"   type="row"/>
-                <field name="month"             type="col" interval="month"/>
+                <field name="period"            type="col"/>
                 <field name="new_leads"         type="measure"/>
                 <field name="qualified_leads"   type="measure"/>
                 <field name="qualified_pct"     type="measure"/>
@@ -51,6 +51,7 @@
         <field name="arch" type="xml">
             <list string="Sales Report (MTD)" create="false" edit="false" delete="false">
                 <field name="month"             string="Month"/>
+                <field name="period"            string="Period"/>
                 <field name="user_id"           string="Salesperson"/>
                 <field name="visa_program_id"   string="Visa Program"/>
                 <field name="new_leads"         string="New Leads"/>

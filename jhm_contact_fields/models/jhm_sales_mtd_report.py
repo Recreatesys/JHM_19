@@ -15,6 +15,7 @@ class JhmSalesMtdLine(models.Model):
       - Sales #:         sale orders created in the period from New Leads only
       - Sales $:         total amount of those sale orders
       - % conversions:   pre-computed in SQL, aggregator=avg to avoid sum of %
+      - period:          'Current Month' or 'Previous' for comparison pivot
     """
     _name = 'jhm.sales.mtd.line'
     _description = 'Sales Report (MTD)'
@@ -25,6 +26,7 @@ class JhmSalesMtdLine(models.Model):
     user_id          = fields.Many2one('res.users',       string='Salesperson',  readonly=True)
     visa_program_id  = fields.Many2one('jhm.visa.program', string='Visa Program', readonly=True)
     month            = fields.Date(string='Month', readonly=True)
+    period           = fields.Char(string='Period', readonly=True)
 
     new_leads           = fields.Integer(string='New Leads',              readonly=True)
     qualified_leads     = fields.Integer(string='Qualified Leads',        readonly=True)
@@ -117,6 +119,10 @@ class JhmSalesMtdLine(models.Model):
                 c.user_id,
                 c.visa_program_id,
                 c.month,
+                CASE WHEN c.month = date_trunc('month', now() AT TIME ZONE 'UTC')::date
+                     THEN 'Current Month'
+                     ELSE 'Previous'
+                END                          AS period,
                 COALESCE(nl.cnt,  0)         AS new_leads,
                 COALESCE(ql.cnt,  0)         AS qualified_leads,
                 CASE WHEN COALESCE(nl.cnt, 0) > 0
