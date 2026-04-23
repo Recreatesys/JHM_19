@@ -31,7 +31,7 @@ PROBABILITY_SELECTION = [
 # Looked up by name at runtime so IDs don't need to match across databases
 _STAGE_NAME_PROBABILITY = [
     ('new lead',          '10'),
-    ('valid whatsapp',    '30'),
+    ('valid whatsapp',    '50'),
     ('appointment',       '50'),
     ('met & follow up',   '70'),
     ('service agreement', '90'),
