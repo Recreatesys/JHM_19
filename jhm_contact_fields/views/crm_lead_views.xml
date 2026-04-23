@@ -313,6 +313,22 @@
     </record>
 
     <!-- ══════════════════════════════════════════════════════════════════════
+         CRM Search — add phone search (Main Applicant + Spouse)
+         ══════════════════════════════════════════════════════════════════════ -->
+
+    <record id="jhm_crm_search_phone" model="ir.ui.view">
+        <field name="name">crm.lead.search.jhm.phone</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.view_crm_case_opportunities_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='phone_mobile_search']" position="after">
+                <field name="partner_spouse_phone" string="All Phones"
+                       filter_domain="['|', ('phone', 'ilike', self), ('partner_spouse_phone', 'ilike', self)]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
          CRM Stage — list / form views with company_id + menu entry
          ══════════════════════════════════════════════════════════════════════ -->
 
