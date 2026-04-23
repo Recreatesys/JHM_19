@@ -50,13 +50,15 @@ class JhmSalesMtdLine(models.Model):
             -- CURRENT MONTH
             -- ═══════════════════════════════════════════════════════════
 
-            -- New Leads: created in current month
+            -- New Leads: created in current month AND last call date in current month
             c_nl AS (
                 SELECT user_id, COUNT(*) AS cnt
                 FROM crm_lead, cur_month
                 WHERE type = 'opportunity' AND active = true
                   AND user_id IS NOT NULL
                   AND date_trunc('month', create_date AT TIME ZONE 'UTC')::date = cur_month.m
+                  AND partner_last_call_date IS NOT NULL
+                  AND date_trunc('month', partner_last_call_date)::date = cur_month.m
                 GROUP BY user_id
             ),
             -- Qualified: created in current month, probability >= 50
@@ -106,13 +108,15 @@ class JhmSalesMtdLine(models.Model):
             -- PREVIOUS
             -- ═══════════════════════════════════════════════════════════
 
-            -- New Leads: all leads created before current month
+            -- New Leads: created before current month AND last call date in current month
             p_nl AS (
                 SELECT user_id, COUNT(*) AS cnt
                 FROM crm_lead, cur_month
                 WHERE type = 'opportunity' AND active = true
                   AND user_id IS NOT NULL
                   AND date_trunc('month', create_date AT TIME ZONE 'UTC')::date < cur_month.m
+                  AND partner_last_call_date IS NOT NULL
+                  AND date_trunc('month', partner_last_call_date)::date = cur_month.m
                 GROUP BY user_id
             ),
             -- Qualified: created BEFORE current month, prob >= 50, updated in current month
