@@ -7,21 +7,8 @@
         <field name="model">jhm.sales.mtd.line</field>
         <field name="arch" type="xml">
             <search string="Sales Report (MTD)">
-                <filter string="Current Month" name="current_month"
-                        domain="[('period','=','Current Month')]"/>
-                <filter string="Previous (All History)" name="previous"
-                        domain="[('period','=','Previous')]"/>
-                <separator/>
-                <filter string="This Month" name="this_month"
-                        domain="[('month','=', context_today().strftime('%Y-%m-01'))]"/>
-                <filter string="Last 3 Months" name="last_3"
-                        domain="[('month','&gt;=', (context_today() - relativedelta(months=2)).strftime('%Y-%m-01'))]"/>
-                <filter string="This Year" name="this_year"
-                        domain="[('month','&gt;=', context_today().strftime('%Y-01-01'))]"/>
-                <separator/>
-                <field name="user_id"         string="Salesperson"/>
-                <field name="visa_program_id" string="Visa Program"/>
-                <field name="period"          string="Period"/>
+                <field name="user_id"  string="Salesperson"/>
+                <field name="period"   string="Period"/>
             </search>
         </field>
     </record>
@@ -52,10 +39,8 @@
         <field name="model">jhm.sales.mtd.line</field>
         <field name="arch" type="xml">
             <list string="Sales Report (MTD)" create="false" edit="false" delete="false">
-                <field name="month"             string="Month"/>
                 <field name="period"            string="Period"/>
                 <field name="user_id"           string="Salesperson"/>
-                <field name="visa_program_id"   string="Visa Program"/>
                 <field name="new_leads"         string="New Leads"/>
                 <field name="qualified_leads"   string="Qualified Leads"/>
                 <field name="qualified_pct"     string="% Qualified"/>
@@ -75,7 +60,7 @@
         <field name="view_mode">pivot,list</field>
         <field name="target">current</field>
         <field name="search_view_id" ref="view_jhm_sales_mtd_search"/>
-        <field name="context">{'search_default_current_month': 1, 'search_default_previous': 1}</field>
+        <field name="context">{}</field>
     </record>
 
     <!-- ── CRM Reporting menu ──────────────────────────────────────────── -->
