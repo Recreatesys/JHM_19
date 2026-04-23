@@ -166,6 +166,7 @@ class CrmLead(models.Model):
     partner_source_details = fields.Char(string='Source Details')
     partner_commission = fields.Char(string='Commission')
     partner_migration_budget = fields.Char(string='Migration Budget')
+    jhm_entity = fields.Selection([('jhm', 'JHM'), ('jhml', 'JHML')], string='JHM/JHML')
     partner_facing_problems = fields.Char(string='Facing Problems')
     partner_consultation_fee_paid = fields.Char(string='Consultation Fee Paid')
     partner_sf_creation_date = fields.Date(string='SF Creation Date')
@@ -921,6 +922,23 @@ class CrmLead(models.Model):
                          % (lead.partner_sf_followup_date, lead.partner_last_call_date),
                     user_id=lead.user_id.id,
                 )
+
+    def action_sale_quotations_new_jhm(self):
+        """Create a new quotation under 'John Hu Migration Consulting' company."""
+        jhm_company = self.env['res.company'].sudo().search(
+            [('name', '=', 'John Hu Migration Consulting')], limit=1
+        )
+        if not jhm_company:
+            from odoo.exceptions import UserError
+            raise UserError('Company "John Hu Migration Consulting" not found.')
+        if not self.partner_id:
+            return self.env["ir.actions.actions"]._for_xml_id("sale_crm.crm_quotation_partner_action")
+        action = self.env["ir.actions.actions"]._for_xml_id("sale_crm.sale_action_quotations_new")
+        ctx = self._prepare_opportunity_quotation_context()
+        ctx['default_company_id'] = jhm_company.id
+        ctx['search_default_opportunity_id'] = self.id
+        action['context'] = ctx
+        return action
 
     def action_open_contact_sync_wizard(self):
         """Open the contact sync wizard pre-loaded with this opportunity."""
