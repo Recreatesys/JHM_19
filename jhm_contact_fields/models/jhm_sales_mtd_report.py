@@ -7,8 +7,8 @@ class JhmSalesMtdLine(models.Model):
     Backs the 'Sales Report (MTD)' pivot in CRM → Reporting.
 
     Definitions:
-      - New Leads:       leads assigned to the salesperson within the period
-                         (date_open falls in the month)
+      - New Leads:       leads created within the period
+                         (create_date falls in the month)
       - Qualified Leads: subset of New Leads with probability >= 50%
       - Appointment:     subset of New Leads with partner_appointment_date
                          within the period
@@ -41,65 +41,65 @@ class JhmSalesMtdLine(models.Model):
             CREATE OR REPLACE VIEW jhm_sales_mtd_line AS
             WITH
 
-            -- New Leads: assigned to salesperson in the month (date_open)
+            -- New Leads: created in the month
             nl AS (
                 SELECT user_id,
                        partner_visa_program_id          AS visa_program_id,
-                       date_trunc('month', date_open AT TIME ZONE 'UTC')::date AS month,
+                       date_trunc('month', create_date AT TIME ZONE 'UTC')::date AS month,
                        COUNT(*) AS cnt
                 FROM crm_lead
                 WHERE type = 'opportunity'
                   AND user_id IS NOT NULL
-                  AND date_open IS NOT NULL
+                  AND create_date IS NOT NULL
                 GROUP BY 1, 2, 3
             ),
 
-            -- Qualified Leads: assigned in the month AND probability >= 50
+            -- Qualified Leads: created in the month AND probability >= 50
             ql AS (
                 SELECT user_id,
                        partner_visa_program_id          AS visa_program_id,
-                       date_trunc('month', date_open AT TIME ZONE 'UTC')::date AS month,
+                       date_trunc('month', create_date AT TIME ZONE 'UTC')::date AS month,
                        COUNT(*) AS cnt
                 FROM crm_lead
                 WHERE type = 'opportunity'
                   AND user_id IS NOT NULL
-                  AND date_open IS NOT NULL
+                  AND create_date IS NOT NULL
                   AND probability >= 50
                 GROUP BY 1, 2, 3
             ),
 
-            -- Appointments: assigned in the month AND appointment_date within same month
+            -- Appointments: created in the month AND appointment_date within same month
             ap AS (
                 SELECT user_id,
                        partner_visa_program_id          AS visa_program_id,
-                       date_trunc('month', date_open AT TIME ZONE 'UTC')::date AS month,
+                       date_trunc('month', create_date AT TIME ZONE 'UTC')::date AS month,
                        COUNT(*) AS cnt
                 FROM crm_lead
                 WHERE type = 'opportunity'
                   AND user_id IS NOT NULL
-                  AND date_open IS NOT NULL
+                  AND create_date IS NOT NULL
                   AND partner_appointment_date IS NOT NULL
-                  AND date_trunc('month', date_open AT TIME ZONE 'UTC')
+                  AND date_trunc('month', create_date AT TIME ZONE 'UTC')
                     = date_trunc('month', partner_appointment_date)
                 GROUP BY 1, 2, 3
             ),
 
-            -- Sales: sale orders from leads assigned in the period,
+            -- Sales: sale orders from leads created in the period,
             --        with order date also in the same period
             so AS (
                 SELECT cl.user_id,
                        cl.partner_visa_program_id       AS visa_program_id,
-                       date_trunc('month', cl.date_open AT TIME ZONE 'UTC')::date AS month,
+                       date_trunc('month', cl.create_date AT TIME ZONE 'UTC')::date AS month,
                        COUNT(DISTINCT s.id)             AS cnt,
                        SUM(s.amount_untaxed)            AS amt
                 FROM sale_order s
                 JOIN crm_lead cl
                     ON cl.id = s.opportunity_id
                    AND cl.user_id IS NOT NULL
-                   AND cl.date_open IS NOT NULL
+                   AND cl.create_date IS NOT NULL
                 WHERE s.state NOT IN ('cancel')
                   AND date_trunc('month', s.date_order AT TIME ZONE 'UTC')
-                    = date_trunc('month', cl.date_open AT TIME ZONE 'UTC')
+                    = date_trunc('month', cl.create_date AT TIME ZONE 'UTC')
                 GROUP BY 1, 2, 3
             ),
 
