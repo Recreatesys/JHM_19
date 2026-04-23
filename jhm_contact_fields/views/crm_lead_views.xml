@@ -32,6 +32,18 @@
                 <group string="Personal">
                     <field name="partner_birthday" string="Birthday"/>
                 </group>
+                <group string="Spouse &amp; Children">
+                    <group>
+                        <field name="partner_spouse_highest_qualification" string="Spouse's Highest Qualification"/>
+                        <field name="partner_spouse_occupation"        string="Spouse's Occupation"/>
+                    </group>
+                    <group>
+                        <field name="partner_child_1"                  string="Applicant Child 1"/>
+                        <field name="partner_child_2"                  string="Applicant Child 2"/>
+                        <field name="partner_child_3"                  string="Applicant Child 3"/>
+                        <field name="partner_child_4"                  string="Applicant Child 4"/>
+                    </group>
+                </group>
                 <group string="Case Tracking">
                     <group>
                         <field name="partner_nomination"          string="Nomination"/>
@@ -101,12 +113,6 @@
                 <field name="partner_spouse_name"              string="Spouse Name"/>
                 <field name="partner_spouse_phone"             string="Spouse Phone"/>
                 <field name="partner_spouse_email"             string="Spouse Email"/>
-                <field name="partner_spouse_highest_qualification" string="Spouse's Highest Qualification"/>
-                <field name="partner_spouse_occupation"        string="Spouse's Occupation"/>
-                <field name="partner_child_1"                  string="Applicant Child 1"/>
-                <field name="partner_child_2"                  string="Applicant Child 2"/>
-                <field name="partner_child_3"                  string="Applicant Child 3"/>
-                <field name="partner_child_4"                  string="Applicant Child 4"/>
                 <field name="partner_immigration_country"      string="Immigration Country"/>
                 <field name="partner_visa_program_id"          string="Visa Program"/>
                 <field name="partner_previous_visa_program_id" string="Prev. Visa Program"/>
