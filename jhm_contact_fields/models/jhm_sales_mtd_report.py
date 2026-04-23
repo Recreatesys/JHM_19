@@ -3,7 +3,7 @@ from odoo import api, fields, models
 
 
 class JhmSalesMtdLine(models.Model):
-    """SQL view: one row per (salesperson × month).
+    """SQL view: one row per (salesperson × visa_program × month).
     Backs the 'Sales Report (MTD)' pivot in CRM → Reporting.
 
     Definitions:
@@ -14,7 +14,7 @@ class JhmSalesMtdLine(models.Model):
                          within the period
       - Sales #:         sale orders created in the period from New Leads only
       - Sales $:         total amount of those sale orders
-      - % conversions:   Qualified/New, Appointment/New, Sales/Qualified
+      - % conversions:   computed in Python so pivot totals don't sum them
     """
     _name = 'jhm.sales.mtd.line'
     _description = 'Sales Report (MTD)'
@@ -28,12 +28,26 @@ class JhmSalesMtdLine(models.Model):
 
     new_leads           = fields.Integer(string='New Leads',              readonly=True)
     qualified_leads     = fields.Integer(string='Qualified Leads',        readonly=True)
-    qualified_pct       = fields.Integer(string='% Qualified',            readonly=True)
+    qualified_pct       = fields.Integer(string='% Qualified',            readonly=True,
+                                         compute='_compute_pct', aggregator='avg')
     appointments        = fields.Integer(string='Appointment',            readonly=True)
-    appointment_pct     = fields.Integer(string='% Appointment',          readonly=True)
+    appointment_pct     = fields.Integer(string='% Appointment',          readonly=True,
+                                         compute='_compute_pct', aggregator='avg')
     sales_count         = fields.Integer(string='Sales #',                readonly=True)
-    sales_pct           = fields.Integer(string='% Sales',                readonly=True)
+    sales_pct           = fields.Integer(string='% Sales',                readonly=True,
+                                         compute='_compute_pct', aggregator='avg')
     sales_amount        = fields.Float(string='Sales $',                  readonly=True, digits=(16, 2))
+
+    @api.depends('new_leads', 'qualified_leads', 'appointments', 'sales_count')
+    def _compute_pct(self):
+        for rec in self:
+            nl = rec.new_leads or 0
+            ql = rec.qualified_leads or 0
+            ap = rec.appointments or 0
+            sc = rec.sales_count or 0
+            rec.qualified_pct = math.ceil(ql / nl * 100) if nl > 0 else 0
+            rec.appointment_pct = math.ceil(ap / nl * 100) if nl > 0 else 0
+            rec.sales_pct = math.ceil(sc / ql * 100) if ql > 0 else 0
 
     def init(self):
         self.env.cr.execute("DROP VIEW IF EXISTS jhm_sales_mtd_line CASCADE")
@@ -115,17 +129,8 @@ class JhmSalesMtdLine(models.Model):
                 c.month,
                 COALESCE(nl.cnt,  0)         AS new_leads,
                 COALESCE(ql.cnt,  0)         AS qualified_leads,
-                CASE WHEN COALESCE(nl.cnt, 0) > 0
-                     THEN CEIL(COALESCE(ql.cnt, 0)::numeric / nl.cnt * 100)::int
-                     ELSE 0 END              AS qualified_pct,
                 COALESCE(ap.cnt,  0)         AS appointments,
-                CASE WHEN COALESCE(nl.cnt, 0) > 0
-                     THEN CEIL(COALESCE(ap.cnt, 0)::numeric / nl.cnt * 100)::int
-                     ELSE 0 END              AS appointment_pct,
                 COALESCE(so.cnt,  0)         AS sales_count,
-                CASE WHEN COALESCE(ql.cnt, 0) > 0
-                     THEN CEIL(COALESCE(so.cnt, 0)::numeric / ql.cnt * 100)::int
-                     ELSE 0 END              AS sales_pct,
                 COALESCE(so.amt,  0.0)       AS sales_amount
             FROM combos c
             LEFT JOIN nl ON nl.user_id = c.user_id AND nl.visa_program_id IS NOT DISTINCT FROM c.visa_program_id AND nl.month = c.month
