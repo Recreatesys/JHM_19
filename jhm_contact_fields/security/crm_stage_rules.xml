@@ -3,24 +3,24 @@
     <!--
         CRM Stage company-isolation rule.
 
-        Stages visible to a user are those where company_id matches the
-        user's current company.  Stages with company_id not set are hidden
-        (every stage MUST have a company assigned for proper isolation).
+        Write/create/unlink restricted to stages matching the user's
+        current company.  Read is unrestricted so that sorting, list
+        views, and reports can display stages from other companies.
 
-        This rule filters the stage_id Many2one dropdown in form/list views.
-        The _read_group_stage_ids override in crm_lead.py handles the Kanban
-        columns and the status bar (both use sudo so ir.rules are bypassed there).
+        The Kanban pipeline columns are filtered by _read_group_stage_ids
+        in crm_lead.py (uses sudo, bypasses ir.rules anyway).
+        The stage_id dropdown in forms uses domain="..." on the field.
     -->
     <record id="crm_stage_per_company_rule" model="ir.rule">
-        <field name="name">CRM Stage: visible only to own company</field>
+        <field name="name">CRM Stage: write only own company</field>
         <field name="model_id" ref="crm.model_crm_stage"/>
         <field name="global" eval="True"/>
         <field name="domain_force">
-            [('company_id', '=', user.company_id.id)]
+            [('company_id', 'in', user.company_ids.ids)]
         </field>
-        <field name="perm_read"   eval="True"/>
-        <field name="perm_write"  eval="False"/>
-        <field name="perm_create" eval="False"/>
-        <field name="perm_unlink" eval="False"/>
+        <field name="perm_read"   eval="False"/>
+        <field name="perm_write"  eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
     </record>
 </odoo>
