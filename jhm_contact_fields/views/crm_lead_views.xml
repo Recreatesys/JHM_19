@@ -125,7 +125,7 @@
                 <field name="partner_commission"            string="Commission"/>
                 <field name="partner_facing_problems"       string="Facing Problems"/>
                 <field name="partner_consultation_fee_paid" string="Fee Paid"/>
-                <field name="partner_sf_creation_date"      string="SF Creation Date"/>
+                <field name="create_date"                   string="Creation Date" readonly="1"/>
                 <field name="partner_appointment_date"      string="Appointment Date"/>
                 <field name="partner_appointment_date_2"   string="2nd Appointment Date" invisible="company_id == 1"/>
                 <field name="partner_appointment_notes"     string="Appointment Notes"/>
