@@ -30,12 +30,17 @@ PROBABILITY_SELECTION = [
 # Stage name (case-insensitive substring) → probability string
 # Looked up by name at runtime so IDs don't need to match across databases
 _STAGE_NAME_PROBABILITY = [
-    ('new lead',          '10'),
-    ('valid whatsapp',    '50'),
-    ('appointment',       '50'),
-    ('met & follow up',   '70'),
-    ('service agreement', '90'),
-    ('ready to close',    '90'),
+    ('new lead',              '10'),
+    ('contacting',            '50'),
+    ('valid whatsapp',        '50'),
+    ('appointment',           '50'),
+    ('met & follow up',       '70'),
+    ('service agreement',     '90'),
+    ('ready to close',        '90'),
+    ('no response',           '10'),
+    ('not interested',        '10'),
+    ('signed w/ other agency','10'),
+    ('unqualified',           '10'),
 ]
 
 # Maps each standalone crm.lead field → the matching res.partner field name
