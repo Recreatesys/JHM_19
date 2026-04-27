@@ -388,12 +388,15 @@ class CrmLead(models.Model):
     # ── Stage → probability (HK company only) ────────────────────────────
     def _apply_hk_stage_probability(self):
         """If the opportunity belongs to John Hu Migration Consulting Ltd.,
-        auto-set jhm_probability based on the current stage name."""
+        auto-set jhm_probability based on the current stage name.
+        Also sets automated_probability to prevent Odoo's PLS from overriding."""
         jhm_hk = self.env['res.company'].search(
-            [('name', 'ilike', 'John Hu Migration')], limit=1
+            [('name', '=', 'John Hu Migration Consulting Ltd.')], limit=1
         )
+        if not jhm_hk:
+            return
         for rec in self:
-            if jhm_hk and rec.company_id.id == jhm_hk.id:
+            if rec.company_id.id == jhm_hk.id:
                 stage_name = (rec.stage_id.name or '').lower()
                 prob = None
                 for keyword, probability in _STAGE_NAME_PROBABILITY:
@@ -401,8 +404,14 @@ class CrmLead(models.Model):
                         prob = probability
                         break
                 if prob:
-                    rec.jhm_probability = prob
-                    rec.probability = float(prob)
+                    prob_float = float(prob)
+                    # Use SQL to bypass ORM recomputation that overwrites probability
+                    self.env.cr.execute(
+                        "UPDATE crm_lead SET jhm_probability = %s, probability = %s, "
+                        "automated_probability = %s WHERE id = %s",
+                        (prob, prob_float, prob_float, rec.id)
+                    )
+                    rec.invalidate_recordset(['jhm_probability', 'probability', 'automated_probability'])
 
     @api.onchange('stage_id')
     def _onchange_stage_probability(self):
