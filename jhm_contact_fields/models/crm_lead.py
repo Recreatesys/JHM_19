@@ -386,26 +386,28 @@ class CrmLead(models.Model):
         return stages.browse(stage_ids)
 
     # ── Stage → probability (HK company only) ────────────────────────────
+    def _get_hk_stage_probability(self):
+        """Return the probability string for the current stage, or None."""
+        stage_name = (self.stage_id.name or '').lower()
+        for keyword, probability in _STAGE_NAME_PROBABILITY:
+            if keyword in stage_name:
+                return probability
+        return None
+
     def _apply_hk_stage_probability(self):
         """If the opportunity belongs to John Hu Migration Consulting Ltd.,
         auto-set jhm_probability based on the current stage name.
-        Also sets automated_probability to prevent Odoo's PLS from overriding."""
+        Uses SQL to bypass Odoo's PLS recomputation that overwrites probability."""
         jhm_hk = self.env['res.company'].search(
             [('name', '=', 'John Hu Migration Consulting Ltd.')], limit=1
         )
         if not jhm_hk:
             return
         for rec in self:
-            if rec.company_id.id == jhm_hk.id:
-                stage_name = (rec.stage_id.name or '').lower()
-                prob = None
-                for keyword, probability in _STAGE_NAME_PROBABILITY:
-                    if keyword in stage_name:
-                        prob = probability
-                        break
+            if rec.company_id.id == jhm_hk.id and isinstance(rec.id, int):
+                prob = rec._get_hk_stage_probability()
                 if prob:
                     prob_float = float(prob)
-                    # Use SQL to bypass ORM recomputation that overwrites probability
                     self.env.cr.execute(
                         "UPDATE crm_lead SET jhm_probability = %s, probability = %s, "
                         "automated_probability = %s WHERE id = %s",
@@ -415,7 +417,19 @@ class CrmLead(models.Model):
 
     @api.onchange('stage_id')
     def _onchange_stage_probability(self):
-        self._apply_hk_stage_probability()
+        """UI onchange — sets probability via ORM (record may not be saved yet)."""
+        jhm_hk = self.env['res.company'].search(
+            [('name', '=', 'John Hu Migration Consulting Ltd.')], limit=1
+        )
+        if not jhm_hk:
+            return
+        for rec in self:
+            if rec.company_id.id == jhm_hk.id:
+                prob = rec._get_hk_stage_probability()
+                if prob:
+                    rec.jhm_probability = prob
+                    rec.probability = float(prob)
+                    rec.automated_probability = float(prob)
 
     # ── Forecast row subtotal ─────────────────────────────────────────────
     forecast_row_total = fields.Monetary(
