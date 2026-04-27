@@ -10,7 +10,7 @@ API_KEY_PARAM = 'jhm.manychat_api_key'
 
 class ManyChatLeadController(http.Controller):
 
-    @http.route('/api/manychat/lead', type='json', auth='none', methods=['POST'], csrf=False)
+    @http.route('/api/manychat/lead', type='json', auth='public', methods=['POST'], csrf=False)
     def create_lead(self, api_key='', name='', phone='', **kwargs):
         """Create a CRM opportunity from ManyChat webhook.
 
@@ -63,9 +63,13 @@ class ManyChatLeadController(http.Controller):
                 'message': 'Lead with this phone already exists',
             }
 
-        # ── Create opportunity ────────────────────────────────────────
+        # ── Create opportunity (as admin user to avoid mail context issues) ─
         source_id = _get_or_create_source(env, 'ManyChat')
-        lead = env['crm.lead'].sudo().create({
+        admin = env.ref('base.user_admin')
+        lead = env['crm.lead'].with_user(admin).with_context(
+            mail_create_nosubscribe=True,
+            tracking_disable=True,
+        ).create({
             'name': name,
             'phone': phone,
             'type': 'opportunity',
