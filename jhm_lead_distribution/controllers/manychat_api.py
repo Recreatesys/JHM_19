@@ -73,6 +73,7 @@ class ManyChatLeadController(http.Controller):
             'name': name,
             'phone': phone,
             'type': 'opportunity',
+            'user_id': False,
             'company_id': jhm_hk.id,
             'team_id': hk_sales.id if hk_sales else False,
             'partner_jhm_lead_source_id': source_id,
