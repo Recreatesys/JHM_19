@@ -84,25 +84,37 @@ class JhmSalesMtdLine(models.Model):
                   AND date_trunc('month', partner_appointment_date)::date = cur_month.m
                 GROUP BY user_id
             ),
-            -- Sales: leads created in current month that have a sale order
-            --        OR have sale_total_amount > 0
-            c_so AS (
-                SELECT cl.user_id,
-                       COUNT(DISTINCT cl.id) AS cnt,
-                       SUM(COALESCE(so_amt.amt, 0) + CASE WHEN so_amt.amt IS NULL THEN COALESCE(cl.sale_total_amount, 0) ELSE 0 END) AS amt
+            -- Sales: leads created in current month that have
+            --   1st Payment > 0 OR a paid/in_payment invoice
+            --   Sales $ = 1st Payment + first paid invoice amount
+            c_inv AS (
+                SELECT cl.id AS lead_id,
+                       MIN(am.amount_untaxed) AS inv_amt
                 FROM crm_lead cl
+                JOIN sale_order so ON so.opportunity_id = cl.id AND so.state NOT IN ('cancel')
+                JOIN sale_order_line sol ON sol.order_id = so.id
+                JOIN sale_order_line_invoice_rel rel ON rel.order_line_id = sol.id
+                JOIN account_move_line aml ON aml.id = rel.invoice_line_id
+                JOIN account_move am ON am.id = aml.move_id
+                    AND am.move_type = 'out_invoice'
+                    AND am.payment_state IN ('paid', 'in_payment')
                 CROSS JOIN cur_month
-                LEFT JOIN (
-                    SELECT s.opportunity_id, SUM(s.amount_untaxed) AS amt
-                    FROM sale_order s
-                    WHERE s.state NOT IN ('cancel')
-                      AND date_trunc('month', s.date_order AT TIME ZONE 'UTC')::date = (SELECT m FROM cur_month)
-                    GROUP BY s.opportunity_id
-                ) so_amt ON so_amt.opportunity_id = cl.id
                 WHERE cl.type = 'opportunity' AND cl.active = true
                   AND cl.user_id IS NOT NULL
                   AND date_trunc('month', cl.create_date AT TIME ZONE 'UTC')::date = cur_month.m
-                  AND (so_amt.amt IS NOT NULL OR COALESCE(cl.sale_total_amount, 0) > 0)
+                GROUP BY cl.id
+            ),
+            c_so AS (
+                SELECT cl.user_id,
+                       COUNT(DISTINCT cl.id) AS cnt,
+                       SUM(COALESCE(cl.sale_payment_1, 0) + COALESCE(c_inv.inv_amt, 0)) AS amt
+                FROM crm_lead cl
+                CROSS JOIN cur_month
+                LEFT JOIN c_inv ON c_inv.lead_id = cl.id
+                WHERE cl.type = 'opportunity' AND cl.active = true
+                  AND cl.user_id IS NOT NULL
+                  AND date_trunc('month', cl.create_date AT TIME ZONE 'UTC')::date = cur_month.m
+                  AND (COALESCE(cl.sale_payment_1, 0) > 0 OR c_inv.inv_amt IS NOT NULL)
                 GROUP BY cl.user_id
             ),
 
@@ -144,25 +156,36 @@ class JhmSalesMtdLine(models.Model):
                   AND date_trunc('month', partner_appointment_date)::date = cur_month.m
                 GROUP BY user_id
             ),
-            -- Sales: leads created BEFORE current month that have a sale order
-            --        in current month OR have sale_total_amount > 0
-            p_so AS (
-                SELECT cl.user_id,
-                       COUNT(DISTINCT cl.id) AS cnt,
-                       SUM(COALESCE(so_amt.amt, 0) + CASE WHEN so_amt.amt IS NULL THEN COALESCE(cl.sale_total_amount, 0) ELSE 0 END) AS amt
+            -- Sales: leads created BEFORE current month that have
+            --   1st Payment > 0 OR a paid/in_payment invoice
+            p_inv AS (
+                SELECT cl.id AS lead_id,
+                       MIN(am.amount_untaxed) AS inv_amt
                 FROM crm_lead cl
+                JOIN sale_order so ON so.opportunity_id = cl.id AND so.state NOT IN ('cancel')
+                JOIN sale_order_line sol ON sol.order_id = so.id
+                JOIN sale_order_line_invoice_rel rel ON rel.order_line_id = sol.id
+                JOIN account_move_line aml ON aml.id = rel.invoice_line_id
+                JOIN account_move am ON am.id = aml.move_id
+                    AND am.move_type = 'out_invoice'
+                    AND am.payment_state IN ('paid', 'in_payment')
                 CROSS JOIN cur_month
-                LEFT JOIN (
-                    SELECT s.opportunity_id, SUM(s.amount_untaxed) AS amt
-                    FROM sale_order s
-                    WHERE s.state NOT IN ('cancel')
-                      AND date_trunc('month', s.date_order AT TIME ZONE 'UTC')::date = (SELECT m FROM cur_month)
-                    GROUP BY s.opportunity_id
-                ) so_amt ON so_amt.opportunity_id = cl.id
                 WHERE cl.type = 'opportunity' AND cl.active = true
                   AND cl.user_id IS NOT NULL
                   AND date_trunc('month', cl.create_date AT TIME ZONE 'UTC')::date < cur_month.m
-                  AND (so_amt.amt IS NOT NULL OR COALESCE(cl.sale_total_amount, 0) > 0)
+                GROUP BY cl.id
+            ),
+            p_so AS (
+                SELECT cl.user_id,
+                       COUNT(DISTINCT cl.id) AS cnt,
+                       SUM(COALESCE(cl.sale_payment_1, 0) + COALESCE(p_inv.inv_amt, 0)) AS amt
+                FROM crm_lead cl
+                CROSS JOIN cur_month
+                LEFT JOIN p_inv ON p_inv.lead_id = cl.id
+                WHERE cl.type = 'opportunity' AND cl.active = true
+                  AND cl.user_id IS NOT NULL
+                  AND date_trunc('month', cl.create_date AT TIME ZONE 'UTC')::date < cur_month.m
+                  AND (COALESCE(cl.sale_payment_1, 0) > 0 OR p_inv.inv_amt IS NOT NULL)
                 GROUP BY cl.user_id
             ),
 
