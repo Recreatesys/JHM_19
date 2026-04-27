@@ -69,6 +69,7 @@ class ManyChatLeadController(http.Controller):
         lead = env['crm.lead'].with_user(admin).with_context(
             mail_create_nosubscribe=True,
             tracking_disable=True,
+            default_user_id=False,
         ).create({
             'name': name,
             'phone': phone,
