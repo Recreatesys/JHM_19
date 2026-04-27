@@ -167,7 +167,38 @@ class CrmLead(models.Model):
     partner_commission = fields.Char(string='Commission')
     partner_migration_budget = fields.Char(string='Migration Budget')
     jhm_entity = fields.Selection([('jhm', 'JHM'), ('jhml', 'JHML')], string='JHM/JHML')
-    partner_facing_problems = fields.Char(string='Facing Problems')
+    _FACING_PROBLEMS = [
+        ('closed_sales', 'Closed Sales'),
+        ('tbd', 'TBD'),
+        ('compare_competitors', 'Compare Competitors'),
+        ('compare_visas', 'Compare Visas'),
+        ('compare_projects', 'Compare Projects'),
+        ('problem_solved_soon', 'Problem can be solved soon'),
+        ('cv', 'CV'),
+        ('ielts', 'IELTS'),
+        ('plans_visit', 'Plans to visit migration country'),
+        ('await_new_policy', 'Await New Policy'),
+        ('preparation', 'Preparation'),
+        ('comparing_countries', 'Comparing Countries/ Initial'),
+        ('source_of_fund', 'Source of Fund'),
+        ('budget', 'Budget'),
+        ('family_issue', 'Family Issue'),
+        ('employer', 'Employer'),
+        ('tax', 'Tax'),
+        ('on_trip', 'On Trip'),
+        ('on_hold', 'On Hold'),
+        ('fail_to_contact', 'Fail to contact by call and WhatsApp'),
+        ('closed_lost', 'Closed Lost'),
+        ('do_not_disturb', 'Do not disturb'),
+        ('no_immigration_need', 'No Immigration Need'),
+        ('unqualified', 'Unqualified'),
+        ('out_of_scope', 'Out-of-scope services'),
+        ('diy', 'DIY'),
+        ('fake_lead', 'Fake Lead'),
+        ('scam', 'Scam'),
+        ('partnership', 'Partnership'),
+    ]
+    partner_facing_problems = fields.Selection(_FACING_PROBLEMS, string='Facing Problems')
     partner_consultation_fee_paid = fields.Char(string='Consultation Fee Paid')
     partner_sf_creation_date = fields.Date(string='SF Creation Date')
     partner_appointment_date = fields.Date(string='Appointment Date', tracking=True)
