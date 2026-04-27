@@ -142,8 +142,8 @@
                 <field name="partner_spouse_phone"             string="Spouse Phone"/>
                 <field name="partner_spouse_email"             string="Spouse Email"/>
                 <field name="partner_immigration_country"      string="Immigration Country"/>
-                <field name="partner_visa_program_id"          string="Visa Program"/>
-                <field name="partner_previous_visa_program_id" string="Prev. Visa Program"/>
+                <field name="partner_visa_program_id"          string="Visa Program" options="{'no_create': False, 'no_open': False}"/>
+                <field name="partner_previous_visa_program_id" string="Prev. Visa Program" options="{'no_create': False, 'no_open': False}"/>
                 <field name="partner_jhm_lead_source_id"       string="Lead Source"/>
                 <field name="partner_source_details"           string="Source Details"/>
                 <field name="webinar_name"                     string="Webinar Name" invisible="company_id == 1"/>
@@ -413,6 +413,29 @@
               action="action_crm_stage_jhm"
               sequence="10"
               groups="base.group_system"/>
+
+    <!-- ── Visa Programs management ──────────────────────────────────── -->
+    <record id="view_visa_program_list" model="ir.ui.view">
+        <field name="name">jhm.visa.program.list</field>
+        <field name="model">jhm.visa.program</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="name"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_visa_program" model="ir.actions.act_window">
+        <field name="name">Visa Programs</field>
+        <field name="res_model">jhm.visa.program</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <menuitem id="menu_visa_program"
+              name="Visa Programs"
+              parent="crm.crm_menu_config"
+              action="action_visa_program"
+              sequence="11"/>
 
     <!-- Remove default "My Pipeline" filter from CRM pipeline action -->
     <record model="ir.actions.act_window" id="crm.crm_lead_action_pipeline">
