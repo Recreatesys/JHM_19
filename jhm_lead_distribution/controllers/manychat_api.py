@@ -1,70 +1,55 @@
-import json
 import logging
 
 from odoo import http
-from odoo.http import request, Response
+from odoo.http import request
 
 _logger = logging.getLogger(__name__)
 
-# API key for ManyChat authentication — stored in system parameters
-# Set via Settings → Technical → System Parameters:
-#   Key:   jhm.manychat_api_key
-#   Value: <your secret key>
 API_KEY_PARAM = 'jhm.manychat_api_key'
 
 
 class ManyChatLeadController(http.Controller):
 
     @http.route('/api/manychat/lead', type='json', auth='none', methods=['POST'], csrf=False)
-    def create_lead(self, **kwargs):
+    def create_lead(self, api_key='', name='', phone='', **kwargs):
         """Create a CRM opportunity from ManyChat webhook.
 
-        Expected JSON body:
-        {
-            "api_key": "<secret>",
-            "name": "Contact Name",
-            "phone": "+852 1234 5678"
-        }
+        JSON-RPC body params:
+            api_key (str): secret key
+            name (str): contact name
+            phone (str): phone number
 
-        Returns:
-        {
-            "status": "ok",
-            "lead_id": 12345,
-            "salesperson": "Cheryl"
-        }
+        Returns dict with status, lead_id, salesperson.
         """
-        data = request.jsonrequest
-        _logger.info('ManyChat API: received %s', data)
+        _logger.info('ManyChat API: name=%s phone=%s', name, phone)
 
         # ── Auth ──────────────────────────────────────────────────────
-        api_key = data.get('api_key', '')
         expected_key = request.env['ir.config_parameter'].sudo().get_param(API_KEY_PARAM, '')
         if not expected_key or api_key != expected_key:
             _logger.warning('ManyChat API: invalid api_key')
             return {'status': 'error', 'message': 'Invalid API key'}
 
         # ── Validate ──────────────────────────────────────────────────
-        name = (data.get('name') or '').strip()
-        phone = (data.get('phone') or '').strip()
+        phone = (phone or '').strip()
+        name = (name or '').strip()
 
         if not phone:
             return {'status': 'error', 'message': 'Phone is required'}
         if not name:
-            name = phone  # fallback name
+            name = phone
 
         # ── Find JHM HK company and HK Sales team ────────────────────
         env = request.env
         jhm_hk = env['res.company'].sudo().search(
-            [('name', 'ilike', 'John Hu Migration')], limit=1)
+            [('name', 'ilike', 'John Hu Migration Consulting Ltd')], limit=1)
         hk_sales = env['crm.team'].sudo().search(
             [('name', 'ilike', 'HK Sales')], limit=1)
 
         if not jhm_hk:
-            _logger.error('ManyChat API: JHM HK company not found')
             return {'status': 'error', 'message': 'Company not found'}
 
-        # ── Check for duplicate (same phone in same company) ──────────
-        existing = env['crm.lead'].sudo().search([
+        # ── Check duplicate ───────────────────────────────────────────
+        existing = env['crm.lead'].sudo().with_context(active_test=False).search([
             ('phone', '=', phone),
             ('company_id', '=', jhm_hk.id),
         ], limit=1)
@@ -79,16 +64,14 @@ class ManyChatLeadController(http.Controller):
             }
 
         # ── Create opportunity ────────────────────────────────────────
-        # type='opportunity' triggers auto-assignment from jhm_lead_distribution
-        lead = env['crm.lead'].sudo().with_context(
-            default_company_id=jhm_hk.id,
-        ).create({
+        source_id = _get_or_create_source(env, 'ManyChat')
+        lead = env['crm.lead'].sudo().create({
             'name': name,
             'phone': phone,
             'type': 'opportunity',
             'company_id': jhm_hk.id,
             'team_id': hk_sales.id if hk_sales else False,
-            'partner_jhm_lead_source_id': _get_or_create_source(env, 'ManyChat'),
+            'partner_jhm_lead_source_id': source_id,
         })
 
         _logger.info('ManyChat API: created lead %d (%s) → salesperson %s',
@@ -102,7 +85,6 @@ class ManyChatLeadController(http.Controller):
 
 
 def _get_or_create_source(env, name):
-    """Find or create a lead source by name."""
     rec = env['jhm.lead.source'].sudo().search([('name', '=ilike', name)], limit=1)
     if not rec:
         rec = env['jhm.lead.source'].sudo().create({'name': name})
