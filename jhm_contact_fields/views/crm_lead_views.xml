@@ -6,6 +6,11 @@
         <field name="inherit_id" ref="crm.crm_lead_view_form"/>
         <field name="arch" type="xml">
 
+            <!-- Restrict stage_id dropdown/statusbar to current company -->
+            <xpath expr="//field[@name='stage_id'][@widget='rotting_statusbar_duration']" position="attributes">
+                <attribute name="domain">[('company_id', '=', company_id)]</attribute>
+            </xpath>
+
             <!-- Documents smart button -->
             <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
                 <button type="object"
