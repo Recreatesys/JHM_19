@@ -134,7 +134,7 @@ class ManyChatSync(models.AbstractModel):
             lead = CrmLead.create({
                 'name': name,
                 'phone': phone,
-                'type': 'opportunity',
+                'type': 'lead',
                 'user_id': False,
                 'company_id': jhm_hk.id,
                 'team_id': hk_sales.id if hk_sales else False,
