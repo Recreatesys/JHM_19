@@ -6,13 +6,20 @@ class CrmLead(models.Model):
 
     # ── Helpers ───────────────────────────────────────────────────────────
 
-    def _get_eligible_salespeople(self):
-        """Return internal users in the current company who are not skipped."""
-        return self.env['res.users'].search([
+    def _get_eligible_salespeople(self, team_id=False):
+        """Return internal users in the given sales team who are not skipped.
+        If no team, fall back to current company users."""
+        domain = [
             ('share', '=', False),
             ('skip_auto_assignment', '=', False),
-            ('company_ids', 'in', self.env.company.id),
-        ])
+        ]
+        if team_id:
+            # Only members of the specific sales team
+            members = self.env['crm.team.member'].search([('crm_team_id', '=', team_id)])
+            domain.append(('id', 'in', members.mapped('user_id').ids))
+        else:
+            domain.append(('company_ids', 'in', self.env.company.id))
+        return self.env['res.users'].search(domain)
 
     def _find_existing_assignment(self, phone, email):
         """If a previous lead/opportunity with the same phone or email already
@@ -50,8 +57,8 @@ class CrmLead(models.Model):
                 rec.user_id = existing_user
                 continue
 
-            # Round-robin
-            eligible = rec._get_eligible_salespeople()
+            # Round-robin — restrict to the lead's sales team members
+            eligible = rec._get_eligible_salespeople(team_id=rec.team_id.id if rec.team_id else False)
             if not eligible:
                 continue
             tracker = Tracker._get_for_company(rec.company_id.id or self.env.company.id)
