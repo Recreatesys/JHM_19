@@ -1,3 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_jhm_assignment_tracker_user,jhm.assignment.tracker user,model_jhm_assignment_tracker,base.group_user,1,0,0,0
 access_jhm_assignment_tracker_manager,jhm.assignment.tracker manager,model_jhm_assignment_tracker,sales_team.group_sale_manager,1,1,1,1
+access_jhm_manychat_sync,jhm.manychat.sync,model_jhm_manychat_sync,base.group_system,1,1,1,1

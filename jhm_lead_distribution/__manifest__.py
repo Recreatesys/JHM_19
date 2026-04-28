@@ -6,6 +6,7 @@
     'depends': ['crm'],
     'data': [
         'security/ir.model.access.csv',
+        'data/cron.xml',
         'views/res_users_views.xml',
         'views/assignment_tracker_views.xml',
     ],
