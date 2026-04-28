@@ -12,10 +12,9 @@ MC_FIELD_PHONE = 12166026          # "PHONE"
 MC_FIELD_LEAD_SOURCE = 12166025    # "lead source"
 
 
-class ManyChatSync(models.Model):
+class ManyChatSync(models.AbstractModel):
     _name = 'jhm.manychat.sync'
     _description = 'ManyChat → Odoo Lead Sync'
-    _auto = False
 
     @api.model
     def _get_api_token(self):
