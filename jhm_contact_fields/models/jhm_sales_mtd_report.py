@@ -156,8 +156,8 @@ class JhmSalesMtdLine(models.Model):
                   AND date_trunc('month', partner_appointment_date)::date = cur_month.m
                 GROUP BY user_id
             ),
-            -- Sales: leads created BEFORE current month that have
-            --   1st Payment > 0 OR a paid/in_payment invoice
+            -- Sales: leads created BEFORE current month where
+            --   invoice date is in current month OR 1st payment date is in current month
             p_inv AS (
                 SELECT cl.id AS lead_id,
                        MIN(am.amount_untaxed) AS inv_amt
@@ -173,20 +173,34 @@ class JhmSalesMtdLine(models.Model):
                 WHERE cl.type = 'opportunity' AND cl.active = true
                   AND cl.user_id IS NOT NULL
                   AND date_trunc('month', cl.create_date AT TIME ZONE 'UTC')::date < cur_month.m
+                  AND date_trunc('month', am.invoice_date)::date = cur_month.m
                 GROUP BY cl.id
             ),
-            p_so AS (
-                SELECT cl.user_id,
-                       COUNT(DISTINCT cl.id) AS cnt,
-                       SUM(COALESCE(cl.sale_payment_1, 0) + COALESCE(p_inv.inv_amt, 0)) AS amt
+            -- 1st Payment: only if payment date is in current month
+            p_pay AS (
+                SELECT cl.id AS lead_id, cl.user_id, cl.sale_payment_1 AS pay_amt
                 FROM crm_lead cl
                 CROSS JOIN cur_month
-                LEFT JOIN p_inv ON p_inv.lead_id = cl.id
                 WHERE cl.type = 'opportunity' AND cl.active = true
                   AND cl.user_id IS NOT NULL
                   AND date_trunc('month', cl.create_date AT TIME ZONE 'UTC')::date < cur_month.m
-                  AND (COALESCE(cl.sale_payment_1, 0) > 0 OR p_inv.inv_amt IS NOT NULL)
-                GROUP BY cl.user_id
+                  AND COALESCE(cl.sale_payment_1, 0) > 0
+                  AND cl.sale_payment_date_1 IS NOT NULL
+                  AND date_trunc('month', cl.sale_payment_date_1)::date = cur_month.m
+            ),
+            p_so AS (
+                SELECT COALESCE(p_pay.user_id, cl.user_id) AS user_id,
+                       COUNT(DISTINCT COALESCE(p_pay.lead_id, cl.id)) AS cnt,
+                       SUM(COALESCE(p_pay.pay_amt, 0) + COALESCE(p_inv.inv_amt, 0)) AS amt
+                FROM (
+                    SELECT lead_id FROM p_inv
+                    UNION
+                    SELECT lead_id FROM p_pay
+                ) all_leads
+                LEFT JOIN p_inv ON p_inv.lead_id = all_leads.lead_id
+                LEFT JOIN p_pay ON p_pay.lead_id = all_leads.lead_id
+                LEFT JOIN crm_lead cl ON cl.id = all_leads.lead_id
+                GROUP BY COALESCE(p_pay.user_id, cl.user_id)
             ),
 
             -- ═══════════════════════════════════════════════════════════
