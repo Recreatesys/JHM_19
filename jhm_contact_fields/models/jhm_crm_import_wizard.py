@@ -45,14 +45,14 @@ COL_CHAT_LOG            = 28
 COL_PAID                = 29
 
 # ── Column indices — JHM Taiwan format ───────────────────────────────────────
-TW_COL_NAME                    = 0
-TW_COL_EMAIL                   = 1
-TW_COL_MOBILE                  = 2
-TW_COL_LINE_ID                 = 3
-TW_COL_PREFERRED_CONTACT_TIME  = 4
-TW_COL_CREATE_DATE             = 5
-TW_COL_WEBINAR_NAME            = 6
-TW_COL_IMMIGRATION_COUNTRY     = 7
+# Col 0: Lead ID (skip)
+TW_COL_CREATE_DATE             = 1   # Lead Created Date → create_date
+TW_COL_WEBINAR_NAME            = 2   # Webinar Name → source_details
+TW_COL_NAME                    = 3   # Name → opportunity name
+TW_COL_EMAIL                   = 4
+TW_COL_MOBILE                  = 5
+TW_COL_LINE_ID                 = 6
+TW_COL_PREFERRED_CONTACT_TIME  = 7   # Preferred Contact Time → appointment_notes
 TW_COL_BUDGET                  = 8
 TW_COL_SALESPERSON             = 9
 TW_COL_STAGE                   = 10
@@ -69,6 +69,8 @@ TW_COL_FOLLOWUP_1              = 20
 TW_COL_FOLLOWUP_2              = 21
 TW_COL_FOLLOWUP_3              = 22
 TW_COL_FOLLOWUP_4              = 23
+TW_COL_CONVERTED_TO            = 26
+TW_COL_CONVERTED_DATE          = 27
 
 _TRUTHY = {'yes', 'y', 'true', '1', 'v', '✓', '✔', 'ok', 'done'}
 
@@ -631,8 +633,29 @@ class JhmCrmImportWizard(models.TransientModel):
         return vals, meta
 
     def _parse_row_taiwan(self, env, row, fallback_uid, stage_cache, user_cache):
-        """Parse one row from the JHM Taiwan XLS format."""
-        row = list(row) + [''] * max(0, 24 - len(row))
+        """Parse one row from the JHM Taiwan XLS format.
+        Col 0: Lead ID (skip)
+        Col 1: Lead Created Date → create_date
+        Col 2: Webinar Name → source_details
+        Col 3: Name → opportunity name
+        Col 4: Email
+        Col 5: Mobile
+        Col 6: Line ID
+        Col 7: Preferred Contact Time → appointment_notes
+        Col 8: Budget → migration_budget
+        Col 9: Salesperson
+        Col 10: Stages → pipeline stage
+        Col 11: Last Contact Date → last_call_date
+        Col 12: Next Action → notes
+        Col 13: Next Action Date → followup_date
+        Col 14: Considering Others → notes
+        Col 15: Notes → chat_log / description
+        Col 16-19: Call Connected / Added on LINE / Email Sent / Group Created
+        Col 20-23: Follow-up notes 1-4
+        Col 26: Converted To
+        Col 27: Converted Date
+        """
+        row = list(row) + [''] * max(0, 28 - len(row))
 
         def c(idx):
             try:
@@ -656,15 +679,11 @@ class JhmCrmImportWizard(models.TransientModel):
         create_date_val   = _parse_date(c(TW_COL_CREATE_DATE))
         last_contact_date = _parse_date(c(TW_COL_LAST_CONTACT_DATE))
         next_action_date  = _parse_date(c(TW_COL_NEXT_ACTION_DATE))
-        followup_1        = c(TW_COL_FOLLOWUP_1)
-        followup_2        = c(TW_COL_FOLLOWUP_2)
-        followup_3        = c(TW_COL_FOLLOWUP_3)
-        followup_4        = c(TW_COL_FOLLOWUP_4)
 
-        # Combine Next Action text with Notes into description
+        # Combine Next Action + Considering Others + Notes into description
         notes_parts = list(filter(None, [
-            ('Preferred Contact Time: ' + c(TW_COL_PREFERRED_CONTACT_TIME)) if c(TW_COL_PREFERRED_CONTACT_TIME) else '',
             ('Next Action: ' + c(TW_COL_NEXT_ACTION)) if c(TW_COL_NEXT_ACTION) else '',
+            ('Considering Others: ' + c(TW_COL_CONSIDERING_OTHERS)) if c(TW_COL_CONSIDERING_OTHERS) else '',
             c(TW_COL_NOTES),
         ]))
         description = '\n'.join(filter(None, notes_parts)) or False
@@ -678,18 +697,18 @@ class JhmCrmImportWizard(models.TransientModel):
             'user_id':                       user_id,
             'active':                        True,
             'partner_jhm_line_id':           c(TW_COL_LINE_ID) or False,
+            'partner_source_details':        c(TW_COL_WEBINAR_NAME) or False,
             'webinar_name':                  c(TW_COL_WEBINAR_NAME) or False,
-            'partner_immigration_country':   c(TW_COL_IMMIGRATION_COUNTRY) or False,
+            'partner_appointment_notes':     c(TW_COL_PREFERRED_CONTACT_TIME) or False,
             'partner_migration_budget':      c(TW_COL_BUDGET) or False,
             'partner_last_call_date':        last_contact_date,
             'partner_sf_followup_date':      next_action_date,
-            'partner_facing_problems':       c(TW_COL_CONSIDERING_OTHERS) or False,
             'partner_chat_log':              c(TW_COL_NOTES) or False,
             'partner_jhm_description':       description,
-            'tw_followup_1':                 followup_1 or False,
-            'tw_followup_2':                 followup_2 or False,
-            'tw_followup_3':                 followup_3 or False,
-            'tw_followup_4':                 followup_4 or False,
+            'tw_followup_1':                 c(TW_COL_FOLLOWUP_1) or False,
+            'tw_followup_2':                 c(TW_COL_FOLLOWUP_2) or False,
+            'tw_followup_3':                 c(TW_COL_FOLLOWUP_3) or False,
+            'tw_followup_4':                 c(TW_COL_FOLLOWUP_4) or False,
             'tw_call_connected':             _tw_status(TW_COL_CALL_CONNECTED),
             'tw_added_on_line':              _tw_status(TW_COL_ADDED_ON_LINE),
             'tw_email_sent':                 _tw_status(TW_COL_EMAIL_SENT),
@@ -965,7 +984,7 @@ class JhmCrmImportWizard(models.TransientModel):
 
         elif fmt == 'taiwan':
             for row in data_rows:
-                row = list(row) + [''] * max(0, 24 - len(row))
+                row = list(row) + [''] * max(0, 28 - len(row))
                 self._get_user(env, user_cache, _c(row, TW_COL_SALESPERSON), fallback_uid)
                 self._get_stage(env, stage_cache, _c(row, TW_COL_STAGE))
             _logger.info('JHM CRM Import (Taiwan) pre-pass: %d users, %d stages',
