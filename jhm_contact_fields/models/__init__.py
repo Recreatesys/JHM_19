@@ -6,4 +6,5 @@ from . import jhm_sales_mtd_report
 from . import jhm_lead_reports
 from . import jhm_crm_import_file
 from . import jhm_crm_import_wizard
+from . import sale_order
 from . import jhm_crm_contact_sync_wizard
