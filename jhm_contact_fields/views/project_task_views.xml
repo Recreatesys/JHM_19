@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Schedule Payment button on task form -->
+    <record id="view_task_form_jhm_schedule_payment" model="ir.ui.view">
+        <field name="name">project.task.form.jhm.schedule.payment</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_form2"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
+                <button name="action_schedule_payment" type="object"
+                        string="Schedule Payment"
+                        class="oe_stat_button"
+                        icon="fa-money"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Wizard form -->
+    <record id="view_jhm_schedule_payment_wizard_form" model="ir.ui.view">
+        <field name="name">jhm.schedule.payment.wizard.form</field>
+        <field name="model">jhm.schedule.payment.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Schedule Payment">
+                <group>
+                    <field name="task_id" readonly="1"/>
+                    <field name="sale_order_id" readonly="1"/>
+                    <field name="invoice_type"/>
+                    <field name="percentage" invisible="invoice_type != 'percentage'"/>
+                    <field name="fixed_amount" invisible="invoice_type != 'fixed'"/>
+                </group>
+                <footer>
+                    <button string="Confirm" name="action_confirm" type="object" class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

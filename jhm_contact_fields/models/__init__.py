@@ -7,4 +7,5 @@ from . import jhm_lead_reports
 from . import jhm_crm_import_file
 from . import jhm_crm_import_wizard
 from . import sale_order
+from . import project_task
 from . import jhm_crm_contact_sync_wizard
