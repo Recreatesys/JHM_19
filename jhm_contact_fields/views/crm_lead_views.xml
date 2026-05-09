@@ -187,6 +187,7 @@
                             <field name="sale_total_amount"     string="Total Amount"/>
                             <field name="sale_order_issue_date" string="Order Issue Date"/>
                             <field name="sale_referral"         string="Referral"/>
+                            <field name="jhm_category"          string="Category"/>
                         </group>
                         <group>
                             <field name="sale_balance"

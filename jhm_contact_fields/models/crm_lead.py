@@ -172,6 +172,16 @@ class CrmLead(models.Model):
     partner_commission = fields.Char(string='Commission')
     partner_migration_budget = fields.Char(string='Migration Budget')
     jhm_entity = fields.Selection([('jhm', 'JHM'), ('jhml', 'JHML')], string='JHM/JHML')
+    jhm_category = fields.Selection([
+        ('business', 'Business'),
+        ('skill', 'Skill'),
+        ('investment', 'Investment'),
+        ('others', 'Others'),
+        ('big_ticket', 'Big Ticket'),
+        ('family', 'Family'),
+        ('tbd', 'TBD'),
+        ('employer_sponsorship', 'Employer Sponsorship'),
+    ], string='Category')
     _FACING_PROBLEMS = [
         ('closed_sales', 'Closed Sales'),
         ('tbd', 'TBD'),
