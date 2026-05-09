@@ -415,6 +415,15 @@ class CrmLead(models.Model):
                     )
                     rec.invalidate_recordset(['jhm_probability', 'probability', 'automated_probability'])
 
+    @api.onchange('partner_visa_program_id')
+    def _onchange_visa_program_entity(self):
+        """Auto-set JHM/JHML based on visa program name."""
+        for rec in self:
+            if rec.company_id and rec.company_id.id == 1 and rec.partner_visa_program_id:
+                name = (rec.partner_visa_program_id.name or '').upper()
+                if name.startswith('AU') or name.startswith('NZ'):
+                    rec.jhm_entity = 'jhm'
+
     @api.onchange('stage_id')
     def _onchange_stage_probability(self):
         """UI onchange — sets probability via ORM (record may not be saved yet)."""
