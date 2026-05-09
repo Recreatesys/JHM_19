@@ -23,13 +23,25 @@ class SaleOrder(models.Model):
             ], limit=1)
             if not folder:
                 continue
-            # Link all projects from this order to the folder
+            # Link all projects from this order to the folder + set company
             for project in order.project_ids:
+                update = {}
                 if not project.documents_folder_id:
-                    project.sudo().write({'documents_folder_id': folder.id})
+                    update['documents_folder_id'] = folder.id
+                if not project.company_id and order.company_id:
+                    update['company_id'] = order.company_id.id
+                if update:
+                    project.sudo().write(update)
                     _logger.info(
-                        'JHM: Linked project "%s" (id=%d) to document folder "%s" (id=%d)',
-                        project.name, project.id, folder.name, folder.id,
+                        'JHM: Updated project "%s" (id=%d) folder=%s company=%s',
+                        project.name, project.id,
+                        update.get('documents_folder_id'), update.get('company_id'),
                     )
+
+        # Also set company on projects even without a document folder
+        for order in self.sudo():
+            for project in order.project_ids:
+                if not project.company_id and order.company_id:
+                    project.sudo().write({'company_id': order.company_id.id})
 
         return result
