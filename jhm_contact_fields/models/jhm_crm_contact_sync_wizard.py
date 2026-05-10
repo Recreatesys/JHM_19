@@ -73,55 +73,54 @@ class JhmCrmContactSyncWizard(models.TransientModel):
 
         for rec in self.lead_ids:
             try:
-                # ── Derive name ────────────────────────────────────────────
-                fn = rec.partner_first_name or ''
-                ln = rec.partner_last_name or ''
-                full_name = ' '.join(filter(None, [fn, ln]))
-                if not full_name:
-                    # Fall back to contact_name or the lead name
-                    full_name = rec.contact_name or rec.name or ''
-                if not full_name:
-                    skipped += 1
-                    log_lines.append(f'Lead {rec.id}: no name — skipped')
-                    continue
+                with self.env.cr.savepoint():
+                    # ── Derive name ────────────────────────────────────────
+                    fn = rec.partner_first_name or ''
+                    ln = rec.partner_last_name or ''
+                    full_name = ' '.join(filter(None, [fn, ln]))
+                    if not full_name:
+                        full_name = rec.contact_name or rec.name or ''
+                    if not full_name:
+                        skipped += 1
+                        log_lines.append(f'Lead {rec.id}: no name — skipped')
+                        continue
 
-                # ── Build partner vals from JHM fields ────────────────────
-                partner_vals = {}
-                for crm_f, partner_f in _CRM_TO_PARTNER.items():
-                    val = rec[crm_f]
-                    if val:
-                        partner_vals[partner_f] = val.id if hasattr(val, 'id') else val
+                    # ── Build partner vals from JHM fields ────────────────
+                    partner_vals = {}
+                    for crm_f, partner_f in _CRM_TO_PARTNER.items():
+                        val = rec[crm_f]
+                        if val:
+                            partner_vals[partner_f] = val.id if hasattr(val, 'id') else val
 
-                if not rec.partner_id:
-                    # ── CREATE new contact ─────────────────────────────────
-                    partner_vals.update({
-                        'name':       full_name,
-                        'first_name': fn or False,
-                        'last_name':  ln or False,
-                        'email':      rec.email_from or False,
-                        'phone':      rec.phone or False,
-                        'is_company': False,
-                        'company_id': rec.company_id.id or False,
-                    })
-                    partner = env['res.partner'].create(partner_vals)
-                    rec.with_context(jhm_no_sync=True).write({'partner_id': partner.id})
-                    created += 1
-                    _logger.info('JHM Contact Sync: created contact "%s" for lead %d', full_name, rec.id)
+                    if not rec.partner_id:
+                        # ── CREATE new contact ─────────────────────────────
+                        partner_vals.update({
+                            'name':       full_name,
+                            'first_name': fn or False,
+                            'last_name':  ln or False,
+                            'email':      rec.email_from or False,
+                            'phone':      rec.phone or False,
+                            'is_company': False,
+                            'company_id': rec.company_id.id or False,
+                        })
+                        partner = env['res.partner'].create(partner_vals)
+                        rec.with_context(jhm_no_sync=True).write({'partner_id': partner.id})
+                        created += 1
+                        _logger.info('JHM Contact Sync: created contact "%s" for lead %d', full_name, rec.id)
 
-                else:
-                    # ── UPDATE existing contact ────────────────────────────
-                    # Sync name parts if not already set
-                    if fn and not rec.partner_id.first_name:
-                        partner_vals['first_name'] = fn
-                    if ln and not rec.partner_id.last_name:
-                        partner_vals['last_name'] = ln
-                    if not rec.partner_id.email and rec.email_from:
-                        partner_vals['email'] = rec.email_from
-                    if not rec.partner_id.phone and rec.phone:
-                        partner_vals['phone'] = rec.phone
-                    if partner_vals:
-                        rec.partner_id.with_context(jhm_no_sync=True).write(partner_vals)
-                    updated += 1
+                    else:
+                        # ── UPDATE existing contact ────────────────────────
+                        if fn and not rec.partner_id.first_name:
+                            partner_vals['first_name'] = fn
+                        if ln and not rec.partner_id.last_name:
+                            partner_vals['last_name'] = ln
+                        if not rec.partner_id.email and rec.email_from:
+                            partner_vals['email'] = rec.email_from
+                        if not rec.partner_id.phone and rec.phone:
+                            partner_vals['phone'] = rec.phone
+                        if partner_vals:
+                            rec.partner_id.with_context(jhm_no_sync=True).write(partner_vals)
+                        updated += 1
 
             except Exception as e:
                 skipped += 1
