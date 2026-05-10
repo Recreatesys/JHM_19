@@ -405,11 +405,11 @@ class CrmLead(models.Model):
         return None
 
     def _apply_hk_stage_probability(self):
-        """If the opportunity belongs to John Hu Migration Consulting Ltd.,
+        """If the opportunity belongs to JHML HK,
         auto-set jhm_probability based on the current stage name.
         Uses SQL to bypass Odoo's PLS recomputation that overwrites probability."""
         jhm_hk = self.env['res.company'].search(
-            [('name', '=', 'John Hu Migration Consulting Ltd.')], limit=1
+            [('name', '=', 'JHML HK')], limit=1
         )
         if not jhm_hk:
             return
@@ -438,7 +438,7 @@ class CrmLead(models.Model):
     def _onchange_stage_probability(self):
         """UI onchange — sets probability via ORM (record may not be saved yet)."""
         jhm_hk = self.env['res.company'].search(
-            [('name', '=', 'John Hu Migration Consulting Ltd.')], limit=1
+            [('name', '=', 'JHML HK')], limit=1
         )
         if not jhm_hk:
             return
@@ -1002,13 +1002,13 @@ class CrmLead(models.Model):
                 )
 
     def action_sale_quotations_new_jhm(self):
-        """Create a new quotation under 'John Hu Migration Consulting' company."""
+        """Create a new quotation under 'JHM HK' company."""
         jhm_company = self.env['res.company'].sudo().search(
-            [('name', '=', 'John Hu Migration Consulting')], limit=1
+            [('name', '=', 'JHM HK')], limit=1
         )
         if not jhm_company:
             from odoo.exceptions import UserError
-            raise UserError('Company "John Hu Migration Consulting" not found.')
+            raise UserError('Company "JHM HK" not found.')
         if not self.partner_id:
             return self.env["ir.actions.actions"]._for_xml_id("sale_crm.crm_quotation_partner_action")
         action = self.env["ir.actions.actions"]._for_xml_id("sale_crm.sale_action_quotations_new")
