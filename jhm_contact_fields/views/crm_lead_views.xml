@@ -45,6 +45,18 @@
                 <group string="Personal">
                     <field name="partner_birthday" string="Birthday"/>
                 </group>
+                <group string="Spouse &amp; Children">
+                    <group>
+                        <field name="partner_spouse_highest_qualification" string="Spouse's Highest Qualification"/>
+                        <field name="partner_spouse_occupation"        string="Spouse's Occupation"/>
+                    </group>
+                    <group>
+                        <field name="partner_child_1"                  string="Applicant Child 1"/>
+                        <field name="partner_child_2"                  string="Applicant Child 2"/>
+                        <field name="partner_child_3"                  string="Applicant Child 3"/>
+                        <field name="partner_child_4"                  string="Applicant Child 4"/>
+                    </group>
+                </group>
                 <group string="Case Tracking">
                     <group>
                         <field name="partner_nomination"          string="Nomination"/>
@@ -143,12 +155,6 @@
                 <field name="partner_source_details"           string="Source Details"/>
                 <field name="webinar_name"                     string="Webinar Name" invisible="company_id == 1"/>
                 <field name="partner_migration_budget"         string="Migration Budget"/>
-                <field name="partner_spouse_highest_qualification" string="Spouse's Highest Qualification"/>
-                <field name="partner_spouse_occupation"        string="Spouse's Occupation"/>
-                <field name="partner_child_1"                  string="Applicant Child 1"/>
-                <field name="partner_child_2"                  string="Applicant Child 2"/>
-                <field name="partner_child_3"                  string="Applicant Child 3"/>
-                <field name="partner_child_4"                  string="Applicant Child 4"/>
             </xpath>
 
             <!-- Remaining fields after Tags in the opportunity group -->
