@@ -280,14 +280,16 @@ class JhmSchedulePaymentLine(models.TransientModel):
     invoice_date = fields.Date(string='Invoice Date')
     due_date = fields.Date(string='Due Date')
 
-    @api.depends('sequence')
+    @api.depends('wizard_id.line_ids', 'wizard_id.existing_invoice_ids')
     def _compute_label(self):
         for line in self:
-            idx = 0
+            # Count existing invoices to offset the numbering
+            existing_count = len(line.wizard_id.existing_invoice_ids) if line.wizard_id else 0
+            idx = existing_count
             if line.wizard_id and line.wizard_id.line_ids:
                 for i, l in enumerate(line.wizard_id.line_ids):
-                    if l.id == line.id:
-                        idx = i
+                    if l == line:
+                        idx = existing_count + i
                         break
             line.label = _PAYMENT_LABELS[idx] if idx < 4 else 'Payment %d' % (idx + 1)
 
