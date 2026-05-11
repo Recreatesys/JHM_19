@@ -136,8 +136,8 @@ class CrmLead(models.Model):
     )
 
     def _sync_assignment_followers(self):
-        """Add salesperson, co-owners, process team and process 2 as followers
-        of the opportunity and its linked contact."""
+        """Add salesperson, co-owners, ownership and process 2 as followers
+        of the opportunity, its linked contact, and related projects/tasks."""
         for rec in self:
             users = rec.user_id | rec.co_owner_ids | rec.process_team_ids | rec.process_2_ids
             partners = users.mapped('partner_id')
@@ -145,6 +145,26 @@ class CrmLead(models.Model):
                 rec.message_subscribe(partner_ids=partners.ids)
                 if rec.partner_id:
                     rec.partner_id.message_subscribe(partner_ids=partners.ids)
+
+            # Sync ownership/coownership to related project tasks
+            ownership_users = rec.process_team_ids | rec.co_owner_ids
+            if ownership_users:
+                try:
+                    tasks = self.env['project.task'].sudo().search([
+                        ('sale_line_id.order_id.opportunity_id', '=', rec.id)
+                    ])
+                    for task in tasks:
+                        task_partners = ownership_users.mapped('partner_id')
+                        task.message_subscribe(partner_ids=task_partners.ids)
+                        # Set assignees if not already set
+                        if not task.user_ids:
+                            task.user_ids = ownership_users
+                    # Also sync to project
+                    projects = tasks.mapped('project_id')
+                    for proj in projects:
+                        proj.message_subscribe(partner_ids=ownership_users.mapped('partner_id').ids)
+                except Exception:
+                    pass  # project module may not be linked
 
     @api.onchange('user_id', 'co_owner_ids', 'process_team_ids', 'process_2_ids')
     def _onchange_assignment_followers(self):
@@ -711,11 +731,11 @@ class CrmLead(models.Model):
 
     # ── Portal access creation ────────────────────────────────────────────
     def _create_portal_access_if_needed(self):
-        """For opportunities with probability >= 50%, auto-create portal access
+        """For opportunities with probability >= 90%, auto-create portal access
         for the linked contact using phone as login and password."""
         for rec in self:
             prob = float(rec.jhm_probability or 0)
-            if prob < 50:
+            if prob < 90:
                 continue
             partner = rec.partner_id
             if not partner:

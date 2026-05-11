@@ -34,6 +34,15 @@
 
             <!-- Fields in the Contacts tab (appended after the base groups) -->
             <xpath expr="//page[@name='lead']" position="inside">
+                <group string="Assignment">
+                    <group>
+                        <field name="co_owner_ids" widget="many2many_tags" string="Coownership" options="{'no_create': True}"/>
+                    </group>
+                    <group>
+                        <field name="process_team_ids" widget="many2many_tags" string="Ownership" options="{'no_create': True}"/>
+                        <field name="process_2_ids" widget="many2many_tags" string="Process 2" options="{'no_create': True}"/>
+                    </group>
+                </group>
                 <group string="Personal">
                     <field name="partner_birthday" string="Birthday"/>
                 </group>
@@ -127,9 +136,8 @@
                 <attribute name="string">Main Applicant Email</attribute>
             </xpath>
 
-            <!-- Co-owner, Inactive Lead — after user_id in opportunity group -->
+            <!-- Inactive Lead — after user_id in opportunity group -->
             <xpath expr="//group[@invisible=&quot;type == 'lead'&quot;]/field[@name='user_id']" position="after">
-                <field name="co_owner_ids" widget="many2many_tags" options="{'no_create': True}"/>
                 <field name="time_to_close"/>
             </xpath>
 
@@ -174,14 +182,6 @@
             <!-- Sales tab -->
             <xpath expr="//notebook" position="inside">
                 <page string="Sales" name="jhm_sales" invisible="type == 'lead'">
-                    <group string="Process Team">
-                        <group>
-                            <field name="process_team_ids" widget="many2many_tags" string="Process Team in Charge" options="{'no_create': True}"/>
-                        </group>
-                        <group>
-                            <field name="process_2_ids" widget="many2many_tags" string="Process 2" options="{'no_create': True}"/>
-                        </group>
-                    </group>
                     <group string="Order">
                         <group>
                             <field name="sale_total_amount"     string="Total Amount"/>
