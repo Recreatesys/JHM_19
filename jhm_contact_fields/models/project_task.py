@@ -10,6 +10,26 @@ _PAYMENT_LABELS = ['First Payment', 'Second Payment', 'Third Payment', 'Fourth P
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
+    draft_invoice_count = fields.Integer(
+        string='Draft Invoices', compute='_compute_draft_invoice_count')
+
+    def _compute_draft_invoice_count(self):
+        for so in self:
+            so.draft_invoice_count = len(so.invoice_ids.filtered(
+                lambda m: m.move_type == 'out_invoice' and m.state == 'draft'))
+
+    def action_view_draft_invoices(self):
+        """Navigate to draft invoices linked to this SO."""
+        self.ensure_one()
+        drafts = self.invoice_ids.filtered(
+            lambda m: m.move_type == 'out_invoice' and m.state == 'draft')
+        action = self.env['ir.actions.actions']._for_xml_id('account.action_move_out_invoice_type')
+        action['domain'] = [('id', 'in', drafts.ids)]
+        if len(drafts) == 1:
+            action['views'] = [(self.env.ref('account.view_move_form').id, 'form')]
+            action['res_id'] = drafts.id
+        return action
+
     def action_schedule_payment(self):
         """Open wizard to schedule payment — creates draft invoices."""
         self.ensure_one()
@@ -198,6 +218,18 @@ class JhmSchedulePaymentLine(models.TransientModel):
 
     wizard_id = fields.Many2one('jhm.schedule.payment.wizard', ondelete='cascade')
     sequence = fields.Integer(default=10)
+    label = fields.Char(string='Payment', compute='_compute_label', store=False)
     amount = fields.Float(string='Amount', digits=(16, 2), required=True)
     invoice_date = fields.Date(string='Invoice Date')
     due_date = fields.Date(string='Due Date')
+
+    @api.depends('sequence')
+    def _compute_label(self):
+        for line in self:
+            idx = 0
+            if line.wizard_id and line.wizard_id.line_ids:
+                for i, l in enumerate(line.wizard_id.line_ids):
+                    if l.id == line.id:
+                        idx = i
+                        break
+            line.label = _PAYMENT_LABELS[idx] if idx < 4 else 'Payment %d' % (idx + 1)

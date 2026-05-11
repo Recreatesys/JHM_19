@@ -13,6 +13,12 @@
                         class="oe_stat_button"
                         icon="fa-money"
                         invisible="state != 'sale'"/>
+                <button name="action_view_draft_invoices" type="object"
+                        class="oe_stat_button"
+                        icon="fa-file-text-o"
+                        invisible="draft_invoice_count == 0">
+                    <field name="draft_invoice_count" widget="statinfo" string="Draft Invoices"/>
+                </button>
             </xpath>
         </field>
     </record>
@@ -73,6 +79,7 @@
                 <field name="line_ids" nolabel="1">
                     <list editable="bottom">
                         <field name="sequence" widget="handle"/>
+                        <field name="label" readonly="1"/>
                         <field name="amount"/>
                         <field name="invoice_date"/>
                         <field name="due_date"/>
