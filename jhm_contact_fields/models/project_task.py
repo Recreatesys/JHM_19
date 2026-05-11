@@ -193,6 +193,7 @@ class JhmSchedulePaymentWizard(models.TransientModel):
         product = sale_order.order_line[0].product_id if sale_order.order_line else False
 
         # Create draft invoices
+        invoices_created = []
         for i, line in enumerate(self.line_ids):
             label = _PAYMENT_LABELS[i] if i < 4 else 'Payment %d' % (i + 1)
             line_name = '%s - %s' % (visa_name, label) if visa_name else label
@@ -216,6 +217,7 @@ class JhmSchedulePaymentWizard(models.TransientModel):
             sale_order.sudo().write({
                 'invoice_ids': [(4, invoice.id)],
             })
+            invoices_created.append(invoice)
 
         # Move created invoices to existing list and mark lines
         existing_lines = []
