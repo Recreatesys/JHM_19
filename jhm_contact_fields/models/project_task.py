@@ -198,6 +198,10 @@ class JhmSchedulePaymentWizard(models.TransientModel):
             label = _PAYMENT_LABELS[i] if i < 4 else 'Payment %d' % (i + 1)
             line_name = '%s - %s' % (visa_name, label) if visa_name else label
 
+            # Link invoice line to the first SO line so the invoice
+            # appears in the SO's invoice_ids (computed field)
+            so_line = sale_order.order_line[:1]
+
             invoice = self.env['account.move'].sudo().with_context(
                 default_move_type='out_invoice',
             ).create({
@@ -211,11 +215,8 @@ class JhmSchedulePaymentWizard(models.TransientModel):
                     'product_id': product.id if product else False,
                     'quantity': 1,
                     'price_unit': line.amount,
+                    'sale_line_ids': [(4, so_line.id)] if so_line else [],
                 })],
-            })
-
-            sale_order.sudo().write({
-                'invoice_ids': [(4, invoice.id)],
             })
             invoices_created.append(invoice)
 
