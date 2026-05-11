@@ -16,6 +16,24 @@
         </field>
     </record>
 
+    <!-- Payment Status on project form -->
+    <record id="view_project_form_jhm_payment_status" model="ir.ui.view">
+        <field name="name">project.project.form.jhm.payment.status</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
+                <button class="oe_stat_button" icon="fa-credit-card" type="object"
+                        name="action_view_all_invoices" invisible="not sale_order_id">
+                    <field name="payment_status" widget="badge"
+                           decoration-danger="payment_status == 'Not Paid'"
+                           decoration-warning="payment_status == 'Partially Paid'"
+                           decoration-success="payment_status == 'Paid'"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
     <!-- Wizard form -->
     <record id="view_jhm_schedule_payment_wizard_form" model="ir.ui.view">
         <field name="name">jhm.schedule.payment.wizard.form</field>
@@ -25,12 +43,19 @@
                 <group>
                     <field name="task_id" readonly="1"/>
                     <field name="sale_order_id" readonly="1"/>
-                    <field name="invoice_type"/>
-                    <field name="percentage" invisible="invoice_type != 'percentage'"/>
-                    <field name="fixed_amount" invisible="invoice_type != 'fixed'"/>
+                    <field name="num_invoices"/>
+                </group>
+                <group string="Payment Amounts">
+                    <field name="amount_1" string="First Payment"/>
+                    <field name="amount_2" string="Second Payment"
+                           invisible="num_invoices not in ('2', '3', '4')"/>
+                    <field name="amount_3" string="Third Payment"
+                           invisible="num_invoices not in ('3', '4')"/>
+                    <field name="amount_4" string="Fourth Payment"
+                           invisible="num_invoices != '4'"/>
                 </group>
                 <footer>
-                    <button string="Confirm" name="action_confirm" type="object" class="btn-primary"/>
+                    <button string="Create Invoices" name="action_confirm" type="object" class="btn-primary"/>
                     <button string="Cancel" special="cancel"/>
                 </footer>
             </form>
