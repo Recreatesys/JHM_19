@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Shared CSS for all JHM invoice/receipt templates
+         ══════════════════════════════════════════════════════════════════════ -->
+
+    <template id="jhm_invoice_style">
+        <style>
+            .jhm-invoice { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #333; }
+            .jhm-invoice .header-img { width: 100%; max-height: 80px; object-fit: contain; }
+            .jhm-invoice .doc-title { font-size: 24px; font-weight: bold; color: #c0392b; margin: 15px 0 10px; }
+            .jhm-invoice .info-table { width: 100%; margin-bottom: 15px; }
+            .jhm-invoice .info-table td { padding: 3px 8px; vertical-align: top; }
+            .jhm-invoice .info-label { font-weight: bold; color: #555; }
+            .jhm-invoice .items-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+            .jhm-invoice .items-table th { background: #c0392b; color: white; padding: 8px; text-align: left; font-size: 11px; }
+            .jhm-invoice .items-table td { padding: 6px 8px; border-bottom: 1px solid #eee; }
+            .jhm-invoice .items-table .text-right { text-align: right; }
+            .jhm-invoice .totals-table { width: 50%; margin-left: auto; margin-top: 10px; }
+            .jhm-invoice .totals-table td { padding: 4px 8px; }
+            .jhm-invoice .totals-table .total-label { text-align: right; font-weight: bold; }
+            .jhm-invoice .totals-table .total-final { border-top: 2px solid #c0392b; font-size: 13px; font-weight: bold; }
+            .jhm-invoice .bank-info { margin-top: 20px; padding: 10px; background: #f9f9f9; border-left: 3px solid #c0392b; font-size: 10px; }
+            .jhm-invoice .stamp-img { width: 100px; margin-top: 15px; }
+            .jhm-invoice .thank-you { text-align: center; font-size: 12px; font-weight: bold; color: #c0392b; margin-top: 25px; }
+        </style>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         JHML HK — Invoice Template
+         ══════════════════════════════════════════════════════════════════════ -->
+
+    <template id="jhml_invoice_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.basic_layout">
+                    <t t-call="jhm_contact_fields.jhm_invoice_style"/>
+                    <div class="page jhm-invoice">
+                        <!-- Header -->
+                        <img src="/jhm_contact_fields/static/src/img/jhml_header.png" class="header-img"/>
+                        <div class="doc-title">INVOICE</div>
+
+                        <!-- Info table -->
+                        <table class="info-table">
+                            <tr>
+                                <td width="60%">
+                                    <table>
+                                        <tr><td class="info-label">Bill To:</td><td><t t-esc="doc.partner_id.name"/></td></tr>
+                                        <tr><td class="info-label">Program:</td><td>
+                                            <t t-foreach="doc.invoice_line_ids.filtered(lambda l: not l.display_type)" t-as="line">
+                                                <t t-esc="line.product_id.name"/>
+                                                <t t-if="not line_last">, </t>
+                                            </t>
+                                        </td></tr>
+                                    </table>
+                                </td>
+                                <td width="40%">
+                                    <table>
+                                        <tr><td class="info-label">Date:</td><td><t t-esc="doc.invoice_date" t-options="{'widget': 'date'}"/></td></tr>
+                                        <tr><td class="info-label">Due Date:</td><td><t t-esc="doc.invoice_date_due" t-options="{'widget': 'date'}"/></td></tr>
+                                        <tr><td class="info-label">Invoice#:</td><td><t t-esc="doc.name"/></td></tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Line items -->
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th class="text-right">Quantity</th>
+                                    <th class="text-right">Unit Price</th>
+                                    <th>Tax</th>
+                                    <th class="text-right">Amount HKD</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="doc.invoice_line_ids.filtered(lambda l: not l.display_type)" t-as="line">
+                                    <tr>
+                                        <td><t t-esc="line.name"/></td>
+                                        <td class="text-right"><t t-esc="'%.2f' % line.quantity"/></td>
+                                        <td class="text-right"><t t-esc="'{:,.2f}'.format(line.price_unit)"/></td>
+                                        <td><t t-esc="', '.join(line.tax_ids.mapped('name')) or 'Tax Exempt'"/></td>
+                                        <td class="text-right"><t t-esc="'{:,.2f}'.format(line.price_subtotal)"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <!-- Totals -->
+                        <table class="totals-table">
+                            <tr><td class="total-label">Subtotal</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_untaxed)"/></td></tr>
+                            <tr><td class="total-label">Total Tax</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_tax)"/></td></tr>
+                            <tr><td class="total-label">Invoice Total HKD</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_total)"/></td></tr>
+                            <tr><td class="total-label">Total Net Payments HKD</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_total - doc.amount_residual)"/></td></tr>
+                            <tr class="total-final"><td class="total-label">Amount Due HKD</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_residual)"/></td></tr>
+                        </table>
+
+                        <!-- Stamp -->
+                        <img src="/jhm_contact_fields/static/src/img/jhml_stamp.png" class="stamp-img"/>
+
+                        <!-- Bank info -->
+                        <div class="bank-info">
+                            Please arrange bank deposit into HSBC A/C No. 582-357547-838 / FPS 7639180<br/>
+                            JOHN HU MIGRATION CONSULTING LTD and email us deposit slip for payment confirmation.
+                        </div>
+
+                        <div class="thank-you">THANK YOU FOR YOUR BUSINESS!</div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         JHML HK — Receipt Template
+         ══════════════════════════════════════════════════════════════════════ -->
+
+    <template id="jhml_receipt_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.basic_layout">
+                    <t t-call="jhm_contact_fields.jhm_invoice_style"/>
+                    <div class="page jhm-invoice">
+                        <img src="/jhm_contact_fields/static/src/img/jhml_header.png" class="header-img"/>
+                        <div class="doc-title">RECEIPT</div>
+
+                        <table class="info-table">
+                            <tr>
+                                <td width="60%">
+                                    <table>
+                                        <tr><td class="info-label">Bill To:</td><td><t t-esc="doc.partner_id.name"/></td></tr>
+                                        <tr><td class="info-label">Program:</td><td>
+                                            <t t-foreach="doc.invoice_line_ids.filtered(lambda l: not l.display_type)" t-as="line">
+                                                <t t-esc="line.product_id.name"/>
+                                                <t t-if="not line_last">, </t>
+                                            </t>
+                                        </td></tr>
+                                    </table>
+                                </td>
+                                <td width="40%">
+                                    <table>
+                                        <tr><td class="info-label">Date:</td><td><t t-esc="doc.invoice_date" t-options="{'widget': 'date'}"/></td></tr>
+                                        <tr><td class="info-label">Due Date:</td><td><t t-esc="doc.invoice_date_due" t-options="{'widget': 'date'}"/></td></tr>
+                                        <tr><td class="info-label">Invoice#:</td><td><t t-esc="doc.name"/></td></tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th class="text-right">Quantity</th>
+                                    <th class="text-right">Unit Price</th>
+                                    <th>Tax</th>
+                                    <th class="text-right">Amount HKD</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="doc.invoice_line_ids.filtered(lambda l: not l.display_type)" t-as="line">
+                                    <tr>
+                                        <td><t t-esc="line.name"/></td>
+                                        <td class="text-right"><t t-esc="'%.2f' % line.quantity"/></td>
+                                        <td class="text-right"><t t-esc="'{:,.2f}'.format(line.price_unit)"/></td>
+                                        <td><t t-esc="', '.join(line.tax_ids.mapped('name')) or 'Tax Exempt'"/></td>
+                                        <td class="text-right"><t t-esc="'{:,.2f}'.format(line.price_subtotal)"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <table class="totals-table">
+                            <tr><td class="total-label">Subtotal</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_untaxed)"/></td></tr>
+                            <tr><td class="total-label">Total Tax</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_tax)"/></td></tr>
+                            <tr><td class="total-label">Invoice Total HKD</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_total)"/></td></tr>
+                            <tr><td class="total-label">Total Net Payments HKD</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_total - doc.amount_residual)"/></td></tr>
+                            <tr class="total-final"><td class="total-label">Amount Due HKD</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_residual)"/></td></tr>
+                        </table>
+
+                        <img src="/jhm_contact_fields/static/src/img/jhml_stamp.png" class="stamp-img"/>
+                        <div class="thank-you">THANK YOU FOR YOUR BUSINESS!</div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         JHM HK — Invoice Template
+         ══════════════════════════════════════════════════════════════════════ -->
+
+    <template id="jhm_invoice_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.basic_layout">
+                    <t t-call="jhm_contact_fields.jhm_invoice_style"/>
+                    <div class="page jhm-invoice">
+                        <img src="/jhm_contact_fields/static/src/img/jhm_header.png" class="header-img"/>
+                        <div class="doc-title">INVOICE</div>
+
+                        <table class="info-table">
+                            <tr>
+                                <td width="60%">
+                                    <table>
+                                        <tr><td class="info-label">Bill To:</td><td><t t-esc="doc.partner_id.name"/></td></tr>
+                                        <tr><td class="info-label">Program:</td><td>
+                                            <t t-foreach="doc.invoice_line_ids.filtered(lambda l: not l.display_type)" t-as="line">
+                                                <t t-esc="line.product_id.name"/>
+                                                <t t-if="not line_last">, </t>
+                                            </t>
+                                        </td></tr>
+                                    </table>
+                                </td>
+                                <td width="40%">
+                                    <table>
+                                        <tr><td class="info-label">Date:</td><td><t t-esc="doc.invoice_date" t-options="{'widget': 'date'}"/></td></tr>
+                                        <tr><td class="info-label">Due Date:</td><td><t t-esc="doc.invoice_date_due" t-options="{'widget': 'date'}"/></td></tr>
+                                        <tr><td class="info-label">Invoice#:</td><td><t t-esc="doc.name"/></td></tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th class="text-right">Quantity</th>
+                                    <th class="text-right">Unit Price</th>
+                                    <th>Tax</th>
+                                    <th class="text-right">Amount HKD</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="doc.invoice_line_ids.filtered(lambda l: not l.display_type)" t-as="line">
+                                    <tr>
+                                        <td><t t-esc="line.name"/></td>
+                                        <td class="text-right"><t t-esc="'%.2f' % line.quantity"/></td>
+                                        <td class="text-right"><t t-esc="'{:,.2f}'.format(line.price_unit)"/></td>
+                                        <td><t t-esc="', '.join(line.tax_ids.mapped('name')) or 'Tax Exempt'"/></td>
+                                        <td class="text-right"><t t-esc="'{:,.2f}'.format(line.price_subtotal)"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <table class="totals-table">
+                            <tr><td class="total-label">Subtotal</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_untaxed)"/></td></tr>
+                            <tr><td class="total-label">Total Tax</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_tax)"/></td></tr>
+                            <tr><td class="total-label">Invoice Total HKD</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_total)"/></td></tr>
+                            <tr><td class="total-label">Total Net Payments HKD</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_total - doc.amount_residual)"/></td></tr>
+                            <tr class="total-final"><td class="total-label">Amount Due HKD</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_residual)"/></td></tr>
+                        </table>
+
+                        <img src="/jhm_contact_fields/static/src/img/jhm_stamp.png" class="stamp-img"/>
+
+                        <div class="bank-info">
+                            Please arrange bank deposit into HANG SENG BANK A/C No. 228-252193-883<br/>
+                            JOHN HU MIGRATION CONSULTING and email us deposit slip for payment confirmation.
+                        </div>
+
+                        <div class="thank-you">THANK YOU FOR YOUR BUSINESS!</div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         JHM HK — Receipt Template
+         ══════════════════════════════════════════════════════════════════════ -->
+
+    <template id="jhm_receipt_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.basic_layout">
+                    <t t-call="jhm_contact_fields.jhm_invoice_style"/>
+                    <div class="page jhm-invoice">
+                        <img src="/jhm_contact_fields/static/src/img/jhm_header.png" class="header-img"/>
+                        <div class="doc-title">RECEIPT</div>
+
+                        <table class="info-table">
+                            <tr>
+                                <td width="60%">
+                                    <table>
+                                        <tr><td class="info-label">Bill To:</td><td><t t-esc="doc.partner_id.name"/></td></tr>
+                                        <tr><td class="info-label">Program:</td><td>
+                                            <t t-foreach="doc.invoice_line_ids.filtered(lambda l: not l.display_type)" t-as="line">
+                                                <t t-esc="line.product_id.name"/>
+                                                <t t-if="not line_last">, </t>
+                                            </t>
+                                        </td></tr>
+                                    </table>
+                                </td>
+                                <td width="40%">
+                                    <table>
+                                        <tr><td class="info-label">Date:</td><td><t t-esc="doc.invoice_date" t-options="{'widget': 'date'}"/></td></tr>
+                                        <tr><td class="info-label">Due Date:</td><td><t t-esc="doc.invoice_date_due" t-options="{'widget': 'date'}"/></td></tr>
+                                        <tr><td class="info-label">Invoice#:</td><td><t t-esc="doc.name"/></td></tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th class="text-right">Quantity</th>
+                                    <th class="text-right">Unit Price</th>
+                                    <th>Tax</th>
+                                    <th class="text-right">Amount HKD</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="doc.invoice_line_ids.filtered(lambda l: not l.display_type)" t-as="line">
+                                    <tr>
+                                        <td><t t-esc="line.name"/></td>
+                                        <td class="text-right"><t t-esc="'%.2f' % line.quantity"/></td>
+                                        <td class="text-right"><t t-esc="'{:,.2f}'.format(line.price_unit)"/></td>
+                                        <td><t t-esc="', '.join(line.tax_ids.mapped('name')) or 'Tax Exempt'"/></td>
+                                        <td class="text-right"><t t-esc="'{:,.2f}'.format(line.price_subtotal)"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <table class="totals-table">
+                            <tr><td class="total-label">Subtotal</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_untaxed)"/></td></tr>
+                            <tr><td class="total-label">Total Tax</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_tax)"/></td></tr>
+                            <tr><td class="total-label">Invoice Total HKD</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_total)"/></td></tr>
+                            <tr><td class="total-label">Total Net Payments HKD</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_total - doc.amount_residual)"/></td></tr>
+                            <tr class="total-final"><td class="total-label">Amount Due HKD</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_residual)"/></td></tr>
+                        </table>
+
+                        <img src="/jhm_contact_fields/static/src/img/jhm_stamp.png" class="stamp-img"/>
+                        <div class="thank-you">THANK YOU FOR YOUR BUSINESS!</div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Report Actions — Print Buttons
+         ══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- JHML Invoice -->
+    <record id="action_report_jhml_invoice" model="ir.actions.report">
+        <field name="name">JHML Invoice</field>
+        <field name="model">account.move</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">jhm_contact_fields.jhml_invoice_document</field>
+        <field name="report_file">jhm_contact_fields.jhml_invoice_document</field>
+        <field name="print_report_name">'JHML-IV-%s' % object.name</field>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- JHML Receipt -->
+    <record id="action_report_jhml_receipt" model="ir.actions.report">
+        <field name="name">JHML Receipt</field>
+        <field name="model">account.move</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">jhm_contact_fields.jhml_receipt_document</field>
+        <field name="report_file">jhm_contact_fields.jhml_receipt_document</field>
+        <field name="print_report_name">'JHML-RC-%s' % object.name</field>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- JHM Invoice -->
+    <record id="action_report_jhm_invoice" model="ir.actions.report">
+        <field name="name">JHM Invoice</field>
+        <field name="model">account.move</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">jhm_contact_fields.jhm_invoice_document</field>
+        <field name="report_file">jhm_contact_fields.jhm_invoice_document</field>
+        <field name="print_report_name">'JHM-IV-%s' % object.name</field>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- JHM Receipt -->
+    <record id="action_report_jhm_receipt" model="ir.actions.report">
+        <field name="name">JHM Receipt</field>
+        <field name="model">account.move</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">jhm_contact_fields.jhm_receipt_document</field>
+        <field name="report_file">jhm_contact_fields.jhm_receipt_document</field>
+        <field name="print_report_name">'JHM-RC-%s' % object.name</field>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>
