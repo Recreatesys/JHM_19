@@ -7,11 +7,11 @@
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//button[@name='action_quotation_send']" position="before">
+            <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
                 <button name="action_schedule_payment" type="object"
                         string="Schedule Payment"
-                        class="oe_highlight"
-                        data-hotkey="p"
+                        class="oe_stat_button"
+                        icon="fa-money"
                         invisible="state != 'sale'"/>
             </xpath>
         </field>
