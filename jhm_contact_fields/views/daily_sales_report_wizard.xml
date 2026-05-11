@@ -81,6 +81,7 @@
         <field name="res_model">jhm.sales.daily.line</field>
         <field name="view_mode">pivot,list</field>
         <field name="target">current</field>
+        <field name="domain">[('user_id', 'in', [5, 6, 7, 9])]</field>
         <field name="search_view_id" ref="view_jhm_sales_daily_search"/>
         <field name="context">{'search_default_last_7': 1, 'search_default_by_salesperson': 1}</field>
     </record>
