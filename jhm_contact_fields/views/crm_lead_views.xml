@@ -32,31 +32,18 @@
                         invisible="partner_id != False"/>
             </xpath>
 
+            <!-- Co-owner, Ownership, Process 2 — after user_id -->
+            <xpath expr="//group[@invisible=&quot;type == 'lead'&quot;]/field[@name='user_id']" position="after">
+                <field name="co_owner_ids" widget="many2many_tags" string="Coownership" options="{'no_create': True}"/>
+                <field name="process_team_ids" widget="many2many_tags" string="Ownership" options="{'no_create': True}"/>
+                <field name="process_2_ids" widget="many2many_tags" string="Process 2" options="{'no_create': True}"/>
+                <field name="time_to_close"/>
+            </xpath>
+
             <!-- Fields in the Contacts tab (appended after the base groups) -->
             <xpath expr="//page[@name='lead']" position="inside">
-                <group string="Assignment">
-                    <group>
-                        <field name="co_owner_ids" widget="many2many_tags" string="Coownership" options="{'no_create': True}"/>
-                    </group>
-                    <group>
-                        <field name="process_team_ids" widget="many2many_tags" string="Ownership" options="{'no_create': True}"/>
-                        <field name="process_2_ids" widget="many2many_tags" string="Process 2" options="{'no_create': True}"/>
-                    </group>
-                </group>
                 <group string="Personal">
                     <field name="partner_birthday" string="Birthday"/>
-                </group>
-                <group string="Spouse &amp; Children">
-                    <group>
-                        <field name="partner_spouse_highest_qualification" string="Spouse's Highest Qualification"/>
-                        <field name="partner_spouse_occupation"        string="Spouse's Occupation"/>
-                    </group>
-                    <group>
-                        <field name="partner_child_1"                  string="Applicant Child 1"/>
-                        <field name="partner_child_2"                  string="Applicant Child 2"/>
-                        <field name="partner_child_3"                  string="Applicant Child 3"/>
-                        <field name="partner_child_4"                  string="Applicant Child 4"/>
-                    </group>
                 </group>
                 <group string="Case Tracking">
                     <group>
@@ -136,11 +123,6 @@
                 <attribute name="string">Main Applicant Email</attribute>
             </xpath>
 
-            <!-- Inactive Lead — after user_id in opportunity group -->
-            <xpath expr="//group[@invisible=&quot;type == 'lead'&quot;]/field[@name='user_id']" position="after">
-                <field name="time_to_close"/>
-            </xpath>
-
             <!-- Fields after Main Applicant Phone in the opportunity contact group -->
             <xpath expr="//group[@name='opportunity_partner']//div[field[@name='phone']]" position="after">
                 <field name="partner_occupation"               string="Occupation"/>
@@ -161,6 +143,12 @@
                 <field name="partner_source_details"           string="Source Details"/>
                 <field name="webinar_name"                     string="Webinar Name" invisible="company_id == 1"/>
                 <field name="partner_migration_budget"         string="Migration Budget"/>
+                <field name="partner_spouse_highest_qualification" string="Spouse's Highest Qualification"/>
+                <field name="partner_spouse_occupation"        string="Spouse's Occupation"/>
+                <field name="partner_child_1"                  string="Applicant Child 1"/>
+                <field name="partner_child_2"                  string="Applicant Child 2"/>
+                <field name="partner_child_3"                  string="Applicant Child 3"/>
+                <field name="partner_child_4"                  string="Applicant Child 4"/>
             </xpath>
 
             <!-- Remaining fields after Tags in the opportunity group -->
