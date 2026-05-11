@@ -143,7 +143,7 @@ class JhmSchedulePaymentWizard(models.TransientModel):
                     lambda m: m.move_type == 'out_invoice' and m.state != 'cancel'
                 ):
                     existing_inv += inv.amount_untaxed
-            new_inv = sum(l.amount for l in wiz.line_ids.filtered(lambda l: not l.invoice_id))
+            new_inv = sum(l.amount for l in wiz.line_ids)
             wiz.invoiced_amount = existing_inv + new_inv
             wiz.balance = wiz.total_amount - wiz.invoiced_amount
 
