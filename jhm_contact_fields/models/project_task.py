@@ -7,11 +7,29 @@ _logger = logging.getLogger(__name__)
 _PAYMENT_LABELS = ['First Payment', 'Second Payment', 'Third Payment', 'Fourth Payment']
 
 
+class SaleOrder(models.Model):
+    _inherit = 'sale.order'
+
+    def action_schedule_payment(self):
+        """Open wizard to schedule payment — creates draft invoices."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Schedule Payment'),
+            'res_model': 'jhm.schedule.payment.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_sale_order_id': self.id,
+            },
+        }
+
+
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
     def action_schedule_payment(self):
-        """Open wizard to schedule payment — creates invoices and activity."""
+        """Open wizard to schedule payment from task — finds linked SO."""
         self.ensure_one()
         sale_order = self.sale_order_id or (self.project_id and self.project_id.sale_order_id)
         if not sale_order:
@@ -26,7 +44,6 @@ class ProjectTask(models.Model):
             'view_mode': 'form',
             'target': 'new',
             'context': {
-                'default_task_id': self.id,
                 'default_sale_order_id': sale_order.id,
             },
         }
@@ -70,7 +87,6 @@ class JhmSchedulePaymentWizard(models.TransientModel):
     _name = 'jhm.schedule.payment.wizard'
     _description = 'Schedule Payment Wizard'
 
-    task_id = fields.Many2one('project.task', required=True)
     sale_order_id = fields.Many2one('sale.order', required=True, string='Sale Order')
     num_invoices = fields.Selection([
         ('1', '1 Invoice'),
@@ -85,7 +101,6 @@ class JhmSchedulePaymentWizard(models.TransientModel):
 
     def action_confirm(self):
         self.ensure_one()
-        task = self.task_id
         sale_order = self.sale_order_id
         num = int(self.num_invoices)
 
@@ -98,37 +113,24 @@ class JhmSchedulePaymentWizard(models.TransientModel):
         if sale_order.opportunity_id and sale_order.opportunity_id.partner_visa_program_id:
             visa_name = sale_order.opportunity_id.partner_visa_program_id.name
         if not visa_name:
-            # Fallback to first SO line product name
             first_line = sale_order.order_line[:1]
             if first_line:
                 visa_name = first_line.product_id.name or ''
 
-        # Get the product from first SO line (or a fallback)
+        # Get the product from first SO line
         product = False
         if sale_order.order_line:
             product = sale_order.order_line[0].product_id
 
-        # 1. Mark milestone as reached
-        project = task.project_id
-        milestone = task.milestone_id
-        if not milestone:
-            milestone = self.env['project.milestone'].create({
-                'name': task.name,
-                'project_id': project.id,
-                'is_reached': True,
-                'reached_date': fields.Date.today(),
-            })
-            task.milestone_id = milestone.id
-        else:
-            milestone.write({'is_reached': True, 'reached_date': fields.Date.today()})
-
-        # 2. Create draft invoices
+        # Create draft invoices
         invoices_created = []
         for i, amount in enumerate(amounts):
             label = _PAYMENT_LABELS[i]
             line_name = '%s - %s' % (visa_name, label) if visa_name else label
 
-            invoice_vals = {
+            invoice = self.env['account.move'].sudo().with_context(
+                default_move_type='out_invoice',
+            ).create({
                 'move_type': 'out_invoice',
                 'partner_id': sale_order.partner_id.id,
                 'company_id': sale_order.company_id.id,
@@ -138,21 +140,15 @@ class JhmSchedulePaymentWizard(models.TransientModel):
                     'quantity': 1,
                     'price_unit': amount,
                 })],
-            }
-
-            # Link to SO
-            invoice = self.env['account.move'].sudo().with_context(
-                default_move_type='out_invoice',
-            ).create(invoice_vals)
+            })
 
             # Link invoice to sale order
             sale_order.sudo().write({
                 'invoice_ids': [(4, invoice.id)],
             })
-
             invoices_created.append(invoice)
 
-        # 3. Create activity for Angela
+        # Create activity for Angela
         angela = self.env['res.users'].search(
             [('login', '=', 'angela.ho@johnhu.com.hk')], limit=1)
         if not angela:
@@ -160,12 +156,11 @@ class JhmSchedulePaymentWizard(models.TransientModel):
 
         contact_name = sale_order.partner_id.name or ''
         so_name = sale_order.name or ''
-        summary = 'Payment: %s — %s (%d invoices)' % (so_name, contact_name, num)
 
-        task.activity_schedule(
+        sale_order.activity_schedule(
             'mail.mail_activity_data_todo',
             date_deadline=fields.Date.today(),
-            summary=summary,
+            summary='Payment: %s — %s (%d invoices)' % (so_name, contact_name, num),
             note='%d draft invoice(s) created for %s (%s). Please review and confirm.' % (
                 num, contact_name, so_name),
             user_id=angela.id,

@@ -1,7 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Schedule Payment button on task form -->
+    <!-- Schedule Payment button on Sale Order form -->
+    <record id="view_sale_order_form_jhm_schedule_payment" model="ir.ui.view">
+        <field name="name">sale.order.form.jhm.schedule.payment</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_quotation_send']" position="before">
+                <button name="action_schedule_payment" type="object"
+                        string="Schedule Payment"
+                        class="oe_highlight"
+                        data-hotkey="p"
+                        invisible="state != 'sale'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Schedule Payment button on task form (kept for convenience) -->
     <record id="view_task_form_jhm_schedule_payment" model="ir.ui.view">
         <field name="name">project.task.form.jhm.schedule.payment</field>
         <field name="model">project.task</field>
@@ -41,7 +57,6 @@
         <field name="arch" type="xml">
             <form string="Schedule Payment">
                 <group>
-                    <field name="task_id" readonly="1"/>
                     <field name="sale_order_id" readonly="1"/>
                     <field name="num_invoices"/>
                 </group>
