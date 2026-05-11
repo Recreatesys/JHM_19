@@ -58,7 +58,7 @@
             <form string="Schedule Payment">
                 <group>
                     <field name="sale_order_id" readonly="1"/>
-                    <field name="num_invoices"/>
+                    <field name="num_invoices" widget="radio"/>
                 </group>
                 <group string="Payment Amounts">
                     <field name="amount_1" string="First Payment"/>
