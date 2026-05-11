@@ -1022,7 +1022,9 @@ class CrmLead(models.Model):
                 )
 
     def action_sale_quotations_new_jhm(self):
-        """Create a new quotation under 'JHM HK' company."""
+        """Create a new quotation under 'JHM HK' company.
+        Ensures partner has access to JHM HK and removes fields
+        that would cause company consistency errors."""
         jhm_company = self.env['res.company'].sudo().search(
             [('name', '=', 'JHM HK')], limit=1
         )
@@ -1031,11 +1033,28 @@ class CrmLead(models.Model):
             raise UserError('Company "JHM HK" not found.')
         if not self.partner_id:
             return self.env["ir.actions.actions"]._for_xml_id("sale_crm.crm_quotation_partner_action")
+
+        # Ensure partner has access to JHM HK company
+        partner = self.partner_id
+        if jhm_company.id not in (partner.company_id.id, False):
+            # Clear partner's company restriction so it works across companies
+            if partner.company_id:
+                partner.sudo().write({'company_id': False})
+
         action = self.env["ir.actions.actions"]._for_xml_id("sale_crm.sale_action_quotations_new")
-        ctx = self._prepare_opportunity_quotation_context()
-        ctx['default_company_id'] = jhm_company.id
-        ctx['search_default_opportunity_id'] = self.id
-        action['context'] = ctx
+        action['context'] = {
+            'default_partner_id': partner.id,
+            'default_company_id': jhm_company.id,
+            'default_opportunity_id': self.id,
+            'default_origin': self.name,
+            'default_campaign_id': self.campaign_id.id,
+            'default_medium_id': self.medium_id.id,
+            'default_source_id': self.source_id.id,
+            'default_tag_ids': [(6, 0, self.tag_ids.ids)],
+            'search_default_opportunity_id': self.id,
+        }
+        if self.user_id:
+            action['context']['default_user_id'] = self.user_id.id
         return action
 
     def action_open_contact_sync_wizard(self):
