@@ -112,6 +112,10 @@ class JhmSchedulePaymentWizard(models.TransientModel):
     _description = 'Schedule Payment Wizard'
 
     sale_order_id = fields.Many2one('sale.order', required=True, string='Sale Order')
+    state = fields.Selection([
+        ('draft', 'Draft'),
+        ('done', 'Done'),
+    ], default='draft')
     total_amount = fields.Monetary(
         string='Total Amount', compute='_compute_amounts',
         currency_field='currency_id')
@@ -125,22 +129,46 @@ class JhmSchedulePaymentWizard(models.TransientModel):
         'res.currency', related='sale_order_id.currency_id')
     line_ids = fields.One2many(
         'jhm.schedule.payment.line', 'wizard_id', string='Payments')
+    existing_invoice_ids = fields.One2many(
+        'jhm.schedule.payment.existing', 'wizard_id', string='Existing Invoices')
 
     @api.depends('sale_order_id', 'line_ids.amount')
     def _compute_amounts(self):
         for wiz in self:
             so = wiz.sale_order_id
             wiz.total_amount = so.amount_untaxed if so else 0
-            # Sum existing invoices
             existing_inv = 0
             if so:
                 for inv in so.invoice_ids.filtered(
                     lambda m: m.move_type == 'out_invoice' and m.state != 'cancel'
                 ):
                     existing_inv += inv.amount_untaxed
-            new_inv = sum(l.amount for l in wiz.line_ids)
+            new_inv = sum(l.amount for l in wiz.line_ids.filtered(lambda l: not l.invoice_id))
             wiz.invoiced_amount = existing_inv + new_inv
             wiz.balance = wiz.total_amount - wiz.invoiced_amount
+
+    @api.model
+    def default_get(self, fields_list):
+        res = super().default_get(fields_list)
+        so_id = res.get('sale_order_id') or self.env.context.get('default_sale_order_id')
+        if so_id:
+            so = self.env['sale.order'].browse(so_id)
+            existing = []
+            for i, inv in enumerate(so.invoice_ids.filtered(
+                lambda m: m.move_type == 'out_invoice' and m.state != 'cancel'
+            )):
+                label = _PAYMENT_LABELS[i] if i < 4 else 'Payment %d' % (i + 1)
+                existing.append((0, 0, {
+                    'label': label,
+                    'amount': inv.amount_untaxed,
+                    'invoice_date': inv.invoice_date,
+                    'due_date': inv.invoice_date_due,
+                    'payment_state': inv.payment_state or 'not_paid',
+                    'invoice_id': inv.id,
+                }))
+            if existing:
+                res['existing_invoice_ids'] = existing
+        return res
 
     def action_confirm(self):
         self.ensure_one()
@@ -189,13 +217,27 @@ class JhmSchedulePaymentWizard(models.TransientModel):
                 'invoice_ids': [(4, invoice.id)],
             })
 
+        # Move created invoices to existing list and mark lines
+        existing_lines = []
+        for i, line in enumerate(self.line_ids):
+            inv = invoices_created[i] if i < len(invoices_created) else None
+            if inv:
+                existing_lines.append((0, 0, {
+                    'label': _PAYMENT_LABELS[i] if i < 4 else 'Payment %d' % (i + 1),
+                    'amount': line.amount,
+                    'invoice_date': line.invoice_date,
+                    'due_date': line.due_date,
+                    'payment_state': 'not_paid',
+                    'invoice_id': inv.id,
+                }))
+
         # Create activity for Angela
         angela = self.env['res.users'].search(
             [('login', '=', 'angela.ho@johnhu.com.hk')], limit=1)
         if not angela:
             angela = self.env.user
 
-        num = len(self.line_ids)
+        num = len(invoices_created)
         contact_name = sale_order.partner_id.name or ''
         so_name = sale_order.name or ''
 
@@ -208,7 +250,20 @@ class JhmSchedulePaymentWizard(models.TransientModel):
             user_id=angela.id,
         )
 
-        return {'type': 'ir.actions.act_window_close'}
+        # Clear new lines, add to existing, stay open
+        self.write({
+            'state': 'done',
+            'line_ids': [(5, 0, 0)],
+            'existing_invoice_ids': existing_lines,
+        })
+
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'jhm.schedule.payment.wizard',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'new',
+        }
 
 
 class JhmSchedulePaymentLine(models.TransientModel):
@@ -233,3 +288,36 @@ class JhmSchedulePaymentLine(models.TransientModel):
                         idx = i
                         break
             line.label = _PAYMENT_LABELS[idx] if idx < 4 else 'Payment %d' % (idx + 1)
+
+
+class JhmSchedulePaymentExisting(models.TransientModel):
+    _name = 'jhm.schedule.payment.existing'
+    _description = 'Existing Invoice Line (read-only)'
+    _order = 'id'
+
+    wizard_id = fields.Many2one('jhm.schedule.payment.wizard', ondelete='cascade')
+    label = fields.Char(string='Payment')
+    amount = fields.Float(string='Amount', digits=(16, 2))
+    invoice_date = fields.Date(string='Invoice Date')
+    due_date = fields.Date(string='Due Date')
+    payment_state = fields.Selection([
+        ('not_paid', 'Not Paid'),
+        ('in_payment', 'In Payment'),
+        ('paid', 'Paid'),
+        ('partial', 'Partial'),
+        ('reversed', 'Reversed'),
+    ], string='Status')
+    invoice_id = fields.Many2one('account.move', string='Invoice')
+
+    def action_open_invoice(self):
+        """Open the linked invoice."""
+        self.ensure_one()
+        if not self.invoice_id:
+            return
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'account.move',
+            'res_id': self.invoice_id.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
