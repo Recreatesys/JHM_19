@@ -17,7 +17,7 @@
         </field>
     </record>
 
-    <!-- Schedule Payment button on task form (kept for convenience) -->
+    <!-- Schedule Payment button on task form -->
     <record id="view_task_form_jhm_schedule_payment" model="ir.ui.view">
         <field name="name">project.task.form.jhm.schedule.payment</field>
         <field name="model">project.task</field>
@@ -50,25 +50,34 @@
         </field>
     </record>
 
-    <!-- Wizard form -->
+    <!-- Schedule Payment Wizard form -->
     <record id="view_jhm_schedule_payment_wizard_form" model="ir.ui.view">
         <field name="name">jhm.schedule.payment.wizard.form</field>
         <field name="model">jhm.schedule.payment.wizard</field>
         <field name="arch" type="xml">
             <form string="Schedule Payment">
                 <group>
-                    <field name="sale_order_id" readonly="1"/>
-                    <field name="num_invoices" widget="radio"/>
+                    <group>
+                        <field name="sale_order_id" readonly="1"/>
+                        <field name="currency_id" invisible="1"/>
+                    </group>
+                    <group>
+                        <field name="total_amount" readonly="1"/>
+                        <field name="invoiced_amount" readonly="1"/>
+                        <field name="balance" readonly="1"
+                               decoration-danger="balance &lt; 0"
+                               decoration-success="balance == 0"/>
+                    </group>
                 </group>
-                <group string="Payment Amounts">
-                    <field name="amount_1" string="First Payment"/>
-                    <field name="amount_2" string="Second Payment"
-                           invisible="num_invoices not in ('2', '3', '4')"/>
-                    <field name="amount_3" string="Third Payment"
-                           invisible="num_invoices not in ('3', '4')"/>
-                    <field name="amount_4" string="Fourth Payment"
-                           invisible="num_invoices != '4'"/>
-                </group>
+                <separator string="Payment Schedule"/>
+                <field name="line_ids" nolabel="1">
+                    <list editable="bottom">
+                        <field name="sequence" widget="handle"/>
+                        <field name="amount"/>
+                        <field name="invoice_date"/>
+                        <field name="due_date"/>
+                    </list>
+                </field>
                 <footer>
                     <button string="Create Invoices" name="action_confirm" type="object" class="btn-primary"/>
                     <button string="Cancel" special="cancel"/>
