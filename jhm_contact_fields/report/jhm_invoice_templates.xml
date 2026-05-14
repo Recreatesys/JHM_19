@@ -7,8 +7,11 @@
 
     <template id="jhm_invoice_style">
         <style>
+            @page { margin: 15mm 10mm 10mm 10mm !important; }
             .jhm-invoice { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #333; margin-top: 0 !important; padding-top: 0 !important; }
             .page { margin-top: 0 !important; padding-top: 0 !important; }
+            .article { margin-top: 0 !important; padding-top: 0 !important; }
+            body { margin-top: 0 !important; }
             .jhm-invoice .header-img { width: 100%; max-height: 80px; object-fit: contain; }
             .jhm-invoice .doc-title { font-size: 24px; font-weight: bold; color: #c0392b; margin: 15px 0 10px; }
             .jhm-invoice .info-table { width: 100%; margin-bottom: 15px; }
