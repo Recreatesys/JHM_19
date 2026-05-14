@@ -14,8 +14,13 @@
             body { margin-top: 0 !important; }
             .jhm-invoice .header-img { width: 100%; max-height: 90px; object-fit: contain; object-position: left; }
             .jhm-invoice .doc-title { font-size: 24px; font-weight: bold; color: #c0392b; margin: 15px 0 10px; }
-            .jhm-invoice .info-table { width: 100%; margin-bottom: 15px; }
-            .jhm-invoice .info-table td { padding: 3px 8px; vertical-align: top; }
+            .jhm-invoice table { border: none !important; border-collapse: collapse; }
+            .jhm-invoice table td, .jhm-invoice table th { border: none !important; }
+            .jhm-invoice .info-table { width: 100%; margin-bottom: 15px; border: none !important; }
+            .jhm-invoice .info-table td { padding: 3px 8px; vertical-align: top; border: none !important; }
+            .jhm-invoice .info-table table { border: none !important; }
+            .jhm-invoice .info-table table td { border: none !important; }
+            .jhm-invoice .totals-table td { border: none !important; }
             .jhm-invoice .info-label { font-weight: bold; color: #555; }
             .jhm-invoice .items-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
             .jhm-invoice .items-table th { background: #c0392b; color: white; padding: 8px; text-align: left; font-size: 11px; }

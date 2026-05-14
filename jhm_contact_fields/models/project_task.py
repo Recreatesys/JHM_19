@@ -14,6 +14,7 @@ class SaleOrder(models.Model):
         string='Draft Invoices', compute='_compute_draft_invoice_count')
     jhm_invoice_company_id = fields.Many2one(
         'res.company', string='Invoice Company',
+        domain="[('id', 'in', [1, 4])]",
         help='If set, invoices are created in this company instead of the SO company.')
     jhm_invoice_count = fields.Integer(
         string='JHM Invoices', compute='_compute_jhm_invoice_count')
