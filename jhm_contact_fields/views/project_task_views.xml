@@ -31,6 +31,7 @@
             <xpath expr="//field[@name='payment_term_id']" position="after">
                 <field name="jhm_invoice_company_id" string="Invoice Company" readonly="jhm_invoice_company_id"
                        invisible="company_id != 1 or state != 'sale'"
+                       domain="[('id', 'in', [1, 4])]"
                        help="Once set to JHM, all invoices will be created in JHM company."/>
                 <button name="action_set_invoice_in_jhm" type="object"
                         string="Invoice in JHM" class="btn-link"
