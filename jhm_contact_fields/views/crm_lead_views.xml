@@ -111,24 +111,7 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
 
-            <!-- HK only: replace single "New Quotation" with two buttons -->
-            <!-- Hide original button for HK company -->
-            <xpath expr="//button[@name='action_sale_quotations_new']" position="attributes">
-                <attribute name="invisible">company_id == 1 or type == 'lead' or (probability == 0 and not active)</attribute>
-            </xpath>
-            <!-- Add two new buttons for HK company -->
-            <xpath expr="//button[@name='action_sale_quotations_new']" position="after">
-                <button string="New Quote in JHML"
-                        name="action_sale_quotations_new" type="object"
-                        class="oe_highlight" data-hotkey="l"
-                        title="Create quotation in JHML HK"
-                        invisible="company_id != 1 or type == 'lead' or (probability == 0 and not active)"/>
-                <button string="New Quote in JHM"
-                        name="action_sale_quotations_new_jhm" type="object"
-                        class="oe_highlight" data-hotkey="j"
-                        title="Create quotation in JHM HK"
-                        invisible="company_id != 1 or type == 'lead' or (probability == 0 and not active)"/>
-            </xpath>
+            <!-- Original "New Quotation" button kept as-is (JHML only) -->
 
             <!-- Fix email_from label — base view hardcodes string="Email", override to correct label -->
             <xpath expr="//field[@name='email_from'][@widget='email']" position="attributes">
