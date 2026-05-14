@@ -48,7 +48,7 @@
                                     <table>
                                         <tr><td class="info-label">Bill To:</td><td><t t-esc="doc.partner_id.name"/></td></tr>
                                         <tr><td class="info-label">Program:</td><td>
-                                            <t t-foreach="doc.invoice_line_ids.filtered(lambda l: not l.display_type)" t-as="line">
+                                            <t t-foreach="doc.invoice_line_ids.filtered(lambda l: l.display_type == 'product')" t-as="line">
                                                 <t t-esc="line.product_id.name"/>
                                                 <t t-if="not line_last">, </t>
                                             </t>
@@ -77,7 +77,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-foreach="doc.invoice_line_ids.filtered(lambda l: not l.display_type)" t-as="line">
+                                <t t-foreach="doc.invoice_line_ids.filtered(lambda l: l.display_type == 'product')" t-as="line">
                                     <tr>
                                         <td><t t-esc="line.name"/></td>
                                         <td class="text-right"><t t-esc="'%.2f' % line.quantity"/></td>
@@ -133,7 +133,7 @@
                                     <table>
                                         <tr><td class="info-label">Bill To:</td><td><t t-esc="doc.partner_id.name"/></td></tr>
                                         <tr><td class="info-label">Program:</td><td>
-                                            <t t-foreach="doc.invoice_line_ids.filtered(lambda l: not l.display_type)" t-as="line">
+                                            <t t-foreach="doc.invoice_line_ids.filtered(lambda l: l.display_type == 'product')" t-as="line">
                                                 <t t-esc="line.product_id.name"/>
                                                 <t t-if="not line_last">, </t>
                                             </t>
@@ -161,7 +161,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-foreach="doc.invoice_line_ids.filtered(lambda l: not l.display_type)" t-as="line">
+                                <t t-foreach="doc.invoice_line_ids.filtered(lambda l: l.display_type == 'product')" t-as="line">
                                     <tr>
                                         <td><t t-esc="line.name"/></td>
                                         <td class="text-right"><t t-esc="'%.2f' % line.quantity"/></td>
@@ -208,7 +208,7 @@
                                     <table>
                                         <tr><td class="info-label">Bill To:</td><td><t t-esc="doc.partner_id.name"/></td></tr>
                                         <tr><td class="info-label">Program:</td><td>
-                                            <t t-foreach="doc.invoice_line_ids.filtered(lambda l: not l.display_type)" t-as="line">
+                                            <t t-foreach="doc.invoice_line_ids.filtered(lambda l: l.display_type == 'product')" t-as="line">
                                                 <t t-esc="line.product_id.name"/>
                                                 <t t-if="not line_last">, </t>
                                             </t>
@@ -236,7 +236,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-foreach="doc.invoice_line_ids.filtered(lambda l: not l.display_type)" t-as="line">
+                                <t t-foreach="doc.invoice_line_ids.filtered(lambda l: l.display_type == 'product')" t-as="line">
                                     <tr>
                                         <td><t t-esc="line.name"/></td>
                                         <td class="text-right"><t t-esc="'%.2f' % line.quantity"/></td>
@@ -289,7 +289,7 @@
                                     <table>
                                         <tr><td class="info-label">Bill To:</td><td><t t-esc="doc.partner_id.name"/></td></tr>
                                         <tr><td class="info-label">Program:</td><td>
-                                            <t t-foreach="doc.invoice_line_ids.filtered(lambda l: not l.display_type)" t-as="line">
+                                            <t t-foreach="doc.invoice_line_ids.filtered(lambda l: l.display_type == 'product')" t-as="line">
                                                 <t t-esc="line.product_id.name"/>
                                                 <t t-if="not line_last">, </t>
                                             </t>
@@ -317,7 +317,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-foreach="doc.invoice_line_ids.filtered(lambda l: not l.display_type)" t-as="line">
+                                <t t-foreach="doc.invoice_line_ids.filtered(lambda l: l.display_type == 'product')" t-as="line">
                                     <tr>
                                         <td><t t-esc="line.name"/></td>
                                         <td class="text-right"><t t-esc="'%.2f' % line.quantity"/></td>
