@@ -12,11 +12,26 @@ class SaleOrder(models.Model):
 
     draft_invoice_count = fields.Integer(
         string='Draft Invoices', compute='_compute_draft_invoice_count')
+    jhm_invoice_company_id = fields.Many2one(
+        'res.company', string='Invoice Company',
+        help='If set, invoices are created in this company instead of the SO company.')
+    jhm_invoice_count = fields.Integer(
+        string='JHM Invoices', compute='_compute_jhm_invoice_count')
 
     def _compute_draft_invoice_count(self):
         for so in self:
             so.draft_invoice_count = len(so.invoice_ids.filtered(
                 lambda m: m.move_type == 'out_invoice' and m.state == 'draft'))
+
+    def _compute_jhm_invoice_count(self):
+        jhm_hk = self.env['res.company'].sudo().search(
+            [('name', '=', 'JHM HK')], limit=1)
+        for so in self:
+            if jhm_hk and so.jhm_invoice_company_id.id == jhm_hk.id:
+                so.jhm_invoice_count = len(so.invoice_ids.filtered(
+                    lambda m: m.move_type == 'out_invoice' and m.company_id.id == jhm_hk.id))
+            else:
+                so.jhm_invoice_count = 0
 
     def action_view_draft_invoices(self):
         """Navigate to draft invoices linked to this SO."""
@@ -29,6 +44,41 @@ class SaleOrder(models.Model):
             action['views'] = [(self.env.ref('account.view_move_form').id, 'form')]
             action['res_id'] = drafts.id
         return action
+
+    def action_view_jhm_invoices(self):
+        """Navigate to JHM company invoices linked to this SO."""
+        self.ensure_one()
+        jhm_hk = self.env['res.company'].sudo().search(
+            [('name', '=', 'JHM HK')], limit=1)
+        invoices = self.invoice_ids.filtered(
+            lambda m: m.move_type == 'out_invoice' and m.company_id.id == jhm_hk.id)
+        action = self.env['ir.actions.actions']._for_xml_id('account.action_move_out_invoice_type')
+        action['domain'] = [('id', 'in', invoices.ids)]
+        action['context'] = {'allowed_company_ids': [jhm_hk.id]}
+        if len(invoices) == 1:
+            action['views'] = [(self.env.ref('account.view_move_form').id, 'form')]
+            action['res_id'] = invoices.id
+        return action
+
+    def action_set_invoice_in_jhm(self):
+        """Mark this SO to create invoices in JHM HK company."""
+        self.ensure_one()
+        jhm_hk = self.env['res.company'].sudo().search(
+            [('name', '=', 'JHM HK')], limit=1)
+        if not jhm_hk:
+            raise UserError(_('Company "JHM HK" not found.'))
+
+        # Ensure partner has access to JHM HK
+        partner = self.partner_id
+        if partner.company_id and partner.company_id.id != jhm_hk.id:
+            partner.sudo().write({'company_id': False})
+
+        self.write({'jhm_invoice_company_id': jhm_hk.id})
+
+    def action_set_invoice_in_jhml(self):
+        """Mark this SO to create invoices in JHML HK (default)."""
+        self.ensure_one()
+        self.write({'jhm_invoice_company_id': False})
 
     def action_schedule_payment(self):
         """Open wizard to schedule payment — creates draft invoices."""
@@ -192,27 +242,38 @@ class JhmSchedulePaymentWizard(models.TransientModel):
 
         product = sale_order.order_line[0].product_id if sale_order.order_line else False
 
+        # Determine invoice company (JHM or JHML)
+        inv_company = sale_order.jhm_invoice_company_id or sale_order.company_id
+        inv_product = product
+
+        # If invoicing in JHM, find matching product in JHM company
+        if sale_order.jhm_invoice_company_id:
+            if product:
+                jhm_product = self.env['product.product'].sudo().search([
+                    ('name', '=', product.name),
+                    '|', ('company_id', '=', inv_company.id), ('company_id', '=', False),
+                ], limit=1)
+                if jhm_product:
+                    inv_product = jhm_product
+
         # Create draft invoices
         invoices_created = []
+        so_line = sale_order.order_line[:1]
         for i, line in enumerate(self.line_ids):
             label = _PAYMENT_LABELS[i] if i < 4 else 'Payment %d' % (i + 1)
             line_name = '%s - %s' % (visa_name, label) if visa_name else label
-
-            # Link invoice line to the first SO line so the invoice
-            # appears in the SO's invoice_ids (computed field)
-            so_line = sale_order.order_line[:1]
 
             invoice = self.env['account.move'].sudo().with_context(
                 default_move_type='out_invoice',
             ).create({
                 'move_type': 'out_invoice',
                 'partner_id': sale_order.partner_id.id,
-                'company_id': sale_order.company_id.id,
+                'company_id': inv_company.id,
                 'invoice_date': line.invoice_date or False,
                 'invoice_date_due': line.due_date or False,
                 'invoice_line_ids': [(0, 0, {
                     'name': line_name,
-                    'product_id': product.id if product else False,
+                    'product_id': inv_product.id if inv_product else False,
                     'quantity': 1,
                     'price_unit': line.amount,
                     'sale_line_ids': [(4, so_line.id)] if so_line else [],

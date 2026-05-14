@@ -8,6 +8,7 @@
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
             <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
+                <field name="jhm_invoice_company_id" invisible="1"/>
                 <button name="action_schedule_payment" type="object"
                         string="Schedule Payment"
                         class="oe_stat_button"
@@ -19,6 +20,24 @@
                         invisible="draft_invoice_count == 0">
                     <field name="draft_invoice_count" widget="statinfo" string="Draft Invoices"/>
                 </button>
+                <button name="action_view_jhm_invoices" type="object"
+                        class="oe_stat_button"
+                        icon="fa-file-text"
+                        invisible="jhm_invoice_count == 0">
+                    <field name="jhm_invoice_count" widget="statinfo" string="Invoice-JHM"/>
+                </button>
+            </xpath>
+            <!-- Invoice in JHM / JHML choice buttons -->
+            <xpath expr="//field[@name='payment_term_id']" position="after">
+                <field name="jhm_invoice_company_id" string="Invoice Company" readonly="jhm_invoice_company_id"
+                       invisible="company_id != 1 or state != 'sale'"
+                       help="Once set to JHM, all invoices will be created in JHM company."/>
+                <button name="action_set_invoice_in_jhm" type="object"
+                        string="Invoice in JHM" class="btn-link"
+                        invisible="company_id != 1 or state != 'sale' or jhm_invoice_company_id"/>
+                <button name="action_set_invoice_in_jhml" type="object"
+                        string="Reset to JHML" class="btn-link text-muted"
+                        invisible="company_id != 1 or state != 'sale' or not jhm_invoice_company_id"/>
             </xpath>
         </field>
     </record>
