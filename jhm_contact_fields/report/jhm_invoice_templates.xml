@@ -8,11 +8,11 @@
     <template id="jhm_invoice_style">
         <style>
             @page { margin: 15mm 10mm 10mm 10mm !important; }
-            .jhm-invoice { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #333; margin-top: 0 !important; padding-top: 0 !important; }
+            .jhm-invoice { font-family: Arial, Helvetica, sans-serif; font-size: 13px; color: #333; margin-top: 0 !important; padding-top: 0 !important; }
             .page { margin-top: 0 !important; padding-top: 0 !important; }
             .article { margin-top: 0 !important; padding-top: 0 !important; }
             body { margin-top: 0 !important; }
-            .jhm-invoice .header-img { width: 100%; max-height: 80px; object-fit: contain; }
+            .jhm-invoice .header-img { width: 100%; max-height: 90px; object-fit: contain; object-position: left; }
             .jhm-invoice .doc-title { font-size: 24px; font-weight: bold; color: #c0392b; margin: 15px 0 10px; }
             .jhm-invoice .info-table { width: 100%; margin-bottom: 15px; }
             .jhm-invoice .info-table td { padding: 3px 8px; vertical-align: top; }
@@ -42,7 +42,7 @@
                     <t t-call="jhm_contact_fields.jhm_invoice_style"/>
                     <div class="page jhm-invoice">
                         <!-- Header -->
-                        <img src="/jhm_contact_fields/static/src/img/jhml_header.png" class="header-img"/>
+                        <img t-att-src="'file:///opt/odoo19/odoo19/custom-addons/jhm_contact_fields/static/src/img/jhml_header.png'" class="header-img"/>
                         <div class="doc-title">INVOICE</div>
 
                         <!-- Info table -->
@@ -103,7 +103,7 @@
                         </table>
 
                         <!-- Stamp -->
-                        <img src="/jhm_contact_fields/static/src/img/jhml_stamp.png" class="stamp-img"/>
+                        <img t-att-src="'file:///opt/odoo19/odoo19/custom-addons/jhm_contact_fields/static/src/img/jhml_stamp.png'" class="stamp-img"/>
 
                         <!-- Bank info -->
                         <div class="bank-info">
@@ -128,7 +128,7 @@
                 <div>
                     <t t-call="jhm_contact_fields.jhm_invoice_style"/>
                     <div class="page jhm-invoice">
-                        <img src="/jhm_contact_fields/static/src/img/jhml_header.png" class="header-img"/>
+                        <img t-att-src="'file:///opt/odoo19/odoo19/custom-addons/jhm_contact_fields/static/src/img/jhml_header.png'" class="header-img"/>
                         <div class="doc-title">RECEIPT</div>
 
                         <table class="info-table">
@@ -185,7 +185,7 @@
                             <tr class="total-final"><td class="total-label">Amount Due HKD</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_residual)"/></td></tr>
                         </table>
 
-                        <img src="/jhm_contact_fields/static/src/img/jhml_stamp.png" class="stamp-img"/>
+                        <img t-att-src="'file:///opt/odoo19/odoo19/custom-addons/jhm_contact_fields/static/src/img/jhml_stamp.png'" class="stamp-img"/>
                         <div class="thank-you">THANK YOU FOR YOUR BUSINESS!</div>
                     </div>
                 </div>
@@ -203,7 +203,7 @@
                 <div>
                     <t t-call="jhm_contact_fields.jhm_invoice_style"/>
                     <div class="page jhm-invoice">
-                        <img src="/jhm_contact_fields/static/src/img/jhm_header.png" class="header-img"/>
+                        <img t-att-src="'file:///opt/odoo19/odoo19/custom-addons/jhm_contact_fields/static/src/img/jhm_header.png'" class="header-img"/>
                         <div class="doc-title">INVOICE</div>
 
                         <table class="info-table">
@@ -260,7 +260,7 @@
                             <tr class="total-final"><td class="total-label">Amount Due HKD</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_residual)"/></td></tr>
                         </table>
 
-                        <img src="/jhm_contact_fields/static/src/img/jhm_stamp.png" class="stamp-img"/>
+                        <img t-att-src="'file:///opt/odoo19/odoo19/custom-addons/jhm_contact_fields/static/src/img/jhm_stamp.png'" class="stamp-img"/>
 
                         <div class="bank-info">
                             Please arrange bank deposit into HANG SENG BANK A/C No. 228-252193-883<br/>
@@ -284,7 +284,7 @@
                 <div>
                     <t t-call="jhm_contact_fields.jhm_invoice_style"/>
                     <div class="page jhm-invoice">
-                        <img src="/jhm_contact_fields/static/src/img/jhm_header.png" class="header-img"/>
+                        <img t-att-src="'file:///opt/odoo19/odoo19/custom-addons/jhm_contact_fields/static/src/img/jhm_header.png'" class="header-img"/>
                         <div class="doc-title">RECEIPT</div>
 
                         <table class="info-table">
@@ -341,7 +341,7 @@
                             <tr class="total-final"><td class="total-label">Amount Due HKD</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_residual)"/></td></tr>
                         </table>
 
-                        <img src="/jhm_contact_fields/static/src/img/jhm_stamp.png" class="stamp-img"/>
+                        <img t-att-src="'file:///opt/odoo19/odoo19/custom-addons/jhm_contact_fields/static/src/img/jhm_stamp.png'" class="stamp-img"/>
                         <div class="thank-you">THANK YOU FOR YOUR BUSINESS!</div>
                     </div>
                 </div>
