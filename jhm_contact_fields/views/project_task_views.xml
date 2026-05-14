@@ -34,10 +34,10 @@
                        domain="[('id', 'in', [1, 4])]"
                        help="Once set to JHM, all invoices will be created in JHM company."/>
                 <button name="action_set_invoice_in_jhm" type="object"
-                        string="Invoice in JHM" class="btn-link"
+                        string="⚡ Invoice in JHM" class="btn-primary"
                         invisible="company_id != 1 or state != 'sale' or jhm_invoice_company_id"/>
                 <button name="action_set_invoice_in_jhml" type="object"
-                        string="Reset to JHML" class="btn-link text-muted"
+                        string="Reset to JHML" class="btn-secondary"
                         invisible="company_id != 1 or state != 'sale' or not jhm_invoice_company_id"/>
             </xpath>
         </field>
