@@ -42,7 +42,7 @@
                     <t t-call="jhm_contact_fields.jhm_invoice_style"/>
                     <div class="page jhm-invoice">
                         <!-- Header -->
-                        <img t-att-src="'file:///opt/odoo19/odoo19/custom-addons/jhm_contact_fields/static/src/img/jhml_header.png'" class="header-img"/>
+                        <img t-att-src="'http://127.0.0.1:8069/jhm_contact_fields/static/src/img/jhml_header.png'" class="header-img"/>
                         <div class="doc-title">INVOICE</div>
 
                         <!-- Info table -->
@@ -103,7 +103,7 @@
                         </table>
 
                         <!-- Stamp -->
-                        <img t-att-src="'file:///opt/odoo19/odoo19/custom-addons/jhm_contact_fields/static/src/img/jhml_stamp.png'" class="stamp-img"/>
+                        <img t-att-src="'http://127.0.0.1:8069/jhm_contact_fields/static/src/img/jhml_stamp.png'" class="stamp-img"/>
 
                         <!-- Bank info -->
                         <div class="bank-info">
@@ -128,7 +128,7 @@
                 <div>
                     <t t-call="jhm_contact_fields.jhm_invoice_style"/>
                     <div class="page jhm-invoice">
-                        <img t-att-src="'file:///opt/odoo19/odoo19/custom-addons/jhm_contact_fields/static/src/img/jhml_header.png'" class="header-img"/>
+                        <img t-att-src="'http://127.0.0.1:8069/jhm_contact_fields/static/src/img/jhml_header.png'" class="header-img"/>
                         <div class="doc-title">RECEIPT</div>
 
                         <table class="info-table">
@@ -185,7 +185,7 @@
                             <tr class="total-final"><td class="total-label">Amount Due HKD</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_residual)"/></td></tr>
                         </table>
 
-                        <img t-att-src="'file:///opt/odoo19/odoo19/custom-addons/jhm_contact_fields/static/src/img/jhml_stamp.png'" class="stamp-img"/>
+                        <img t-att-src="'http://127.0.0.1:8069/jhm_contact_fields/static/src/img/jhml_stamp.png'" class="stamp-img"/>
                         <div class="thank-you">THANK YOU FOR YOUR BUSINESS!</div>
                     </div>
                 </div>
@@ -203,7 +203,7 @@
                 <div>
                     <t t-call="jhm_contact_fields.jhm_invoice_style"/>
                     <div class="page jhm-invoice">
-                        <img t-att-src="'file:///opt/odoo19/odoo19/custom-addons/jhm_contact_fields/static/src/img/jhm_header.png'" class="header-img"/>
+                        <img t-att-src="'http://127.0.0.1:8069/jhm_contact_fields/static/src/img/jhm_header.png'" class="header-img"/>
                         <div class="doc-title">INVOICE</div>
 
                         <table class="info-table">
@@ -260,7 +260,7 @@
                             <tr class="total-final"><td class="total-label">Amount Due HKD</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_residual)"/></td></tr>
                         </table>
 
-                        <img t-att-src="'file:///opt/odoo19/odoo19/custom-addons/jhm_contact_fields/static/src/img/jhm_stamp.png'" class="stamp-img"/>
+                        <img t-att-src="'http://127.0.0.1:8069/jhm_contact_fields/static/src/img/jhm_stamp.png'" class="stamp-img"/>
 
                         <div class="bank-info">
                             Please arrange bank deposit into HANG SENG BANK A/C No. 228-252193-883<br/>
@@ -284,7 +284,7 @@
                 <div>
                     <t t-call="jhm_contact_fields.jhm_invoice_style"/>
                     <div class="page jhm-invoice">
-                        <img t-att-src="'file:///opt/odoo19/odoo19/custom-addons/jhm_contact_fields/static/src/img/jhm_header.png'" class="header-img"/>
+                        <img t-att-src="'http://127.0.0.1:8069/jhm_contact_fields/static/src/img/jhm_header.png'" class="header-img"/>
                         <div class="doc-title">RECEIPT</div>
 
                         <table class="info-table">
@@ -341,7 +341,7 @@
                             <tr class="total-final"><td class="total-label">Amount Due HKD</td><td class="text-right"><t t-esc="'{:,.2f}'.format(doc.amount_residual)"/></td></tr>
                         </table>
 
-                        <img t-att-src="'file:///opt/odoo19/odoo19/custom-addons/jhm_contact_fields/static/src/img/jhm_stamp.png'" class="stamp-img"/>
+                        <img t-att-src="'http://127.0.0.1:8069/jhm_contact_fields/static/src/img/jhm_stamp.png'" class="stamp-img"/>
                         <div class="thank-you">THANK YOU FOR YOUR BUSINESS!</div>
                     </div>
                 </div>
