@@ -38,7 +38,7 @@
     <template id="jhml_invoice_document">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="doc">
-                <t t-call="web.basic_layout">
+                <div>
                     <t t-call="jhm_contact_fields.jhm_invoice_style"/>
                     <div class="page jhm-invoice">
                         <!-- Header -->
@@ -113,7 +113,7 @@
 
                         <div class="thank-you">THANK YOU FOR YOUR BUSINESS!</div>
                     </div>
-                </t>
+                </div>
             </t>
         </t>
     </template>
@@ -125,7 +125,7 @@
     <template id="jhml_receipt_document">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="doc">
-                <t t-call="web.basic_layout">
+                <div>
                     <t t-call="jhm_contact_fields.jhm_invoice_style"/>
                     <div class="page jhm-invoice">
                         <img src="/jhm_contact_fields/static/src/img/jhml_header.png" class="header-img"/>
@@ -188,7 +188,7 @@
                         <img src="/jhm_contact_fields/static/src/img/jhml_stamp.png" class="stamp-img"/>
                         <div class="thank-you">THANK YOU FOR YOUR BUSINESS!</div>
                     </div>
-                </t>
+                </div>
             </t>
         </t>
     </template>
@@ -200,7 +200,7 @@
     <template id="jhm_invoice_document">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="doc">
-                <t t-call="web.basic_layout">
+                <div>
                     <t t-call="jhm_contact_fields.jhm_invoice_style"/>
                     <div class="page jhm-invoice">
                         <img src="/jhm_contact_fields/static/src/img/jhm_header.png" class="header-img"/>
@@ -269,7 +269,7 @@
 
                         <div class="thank-you">THANK YOU FOR YOUR BUSINESS!</div>
                     </div>
-                </t>
+                </div>
             </t>
         </t>
     </template>
@@ -281,7 +281,7 @@
     <template id="jhm_receipt_document">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="doc">
-                <t t-call="web.basic_layout">
+                <div>
                     <t t-call="jhm_contact_fields.jhm_invoice_style"/>
                     <div class="page jhm-invoice">
                         <img src="/jhm_contact_fields/static/src/img/jhm_header.png" class="header-img"/>
@@ -344,7 +344,7 @@
                         <img src="/jhm_contact_fields/static/src/img/jhm_stamp.png" class="stamp-img"/>
                         <div class="thank-you">THANK YOU FOR YOUR BUSINESS!</div>
                     </div>
-                </t>
+                </div>
             </t>
         </t>
     </template>
