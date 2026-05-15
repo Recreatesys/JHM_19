@@ -109,6 +109,27 @@ class SaleOrder(models.Model):
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
+    payment_status = fields.Char(
+        string='Payment Status', compute='_compute_payment_status', store=False)
+
+    def _compute_payment_status(self):
+        for task in self:
+            so = task.sale_order_id or (task.project_id and task.project_id.sale_order_id)
+            if not so:
+                so = task.sale_line_id.order_id if task.sale_line_id else False
+            if not so:
+                task.payment_status = ''
+                continue
+            invoices = so.invoice_ids.filtered(
+                lambda m: m.move_type == 'out_invoice' and m.state == 'posted'
+            )
+            if not invoices:
+                task.payment_status = 'Not Paid'
+            elif all(inv.payment_state in ('paid', 'in_payment') for inv in invoices):
+                task.payment_status = 'Paid'
+            else:
+                task.payment_status = 'Partially Paid'
+
     def action_schedule_payment(self):
         """Open wizard to schedule payment from task — finds linked SO."""
         self.ensure_one()

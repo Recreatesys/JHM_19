@@ -76,6 +76,38 @@
         </field>
     </record>
 
+    <!-- Payment Status badge on project kanban card -->
+    <record id="view_project_kanban_jhm_payment" model="ir.ui.view">
+        <field name="name">project.project.kanban.jhm.payment</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='tag_ids']" position="after">
+                <field name="payment_status" invisible="not payment_status"
+                       widget="badge"
+                       decoration-danger="payment_status == 'Not Paid'"
+                       decoration-warning="payment_status == 'Partially Paid'"
+                       decoration-success="payment_status == 'Paid'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Payment Status badge on task kanban card -->
+    <record id="view_task_kanban_jhm_payment" model="ir.ui.view">
+        <field name="name">project.task.kanban.jhm.payment</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='tag_ids']" position="after">
+                <field name="payment_status" invisible="not payment_status"
+                       widget="badge"
+                       decoration-danger="payment_status == 'Not Paid'"
+                       decoration-warning="payment_status == 'Partially Paid'"
+                       decoration-success="payment_status == 'Paid'"/>
+            </xpath>
+        </field>
+    </record>
+
     <!-- Schedule Payment Wizard form -->
     <record id="view_jhm_schedule_payment_wizard_form" model="ir.ui.view">
         <field name="name">jhm.schedule.payment.wizard.form</field>
