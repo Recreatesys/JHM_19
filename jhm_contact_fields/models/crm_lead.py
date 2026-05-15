@@ -136,6 +136,29 @@ class CrmLead(models.Model):
         string='Probability',
     )
 
+    # ── Digits-only phone fields for flexible search ─────────────────────
+    phone_digits = fields.Char(
+        string='Phone Digits', compute='_compute_phone_digits',
+        store=True, index=True)
+    spouse_phone_digits = fields.Char(
+        string='Spouse Phone Digits', compute='_compute_phone_digits',
+        store=True, index=True)
+
+    @staticmethod
+    def _strip_to_digits(val):
+        """Remove all non-digit characters from a phone number."""
+        if not val:
+            return False
+        import re
+        digits = re.sub(r'\D', '', val)
+        return digits or False
+
+    @api.depends('phone', 'partner_spouse_phone')
+    def _compute_phone_digits(self):
+        for rec in self:
+            rec.phone_digits = self._strip_to_digits(rec.phone)
+            rec.spouse_phone_digits = self._strip_to_digits(rec.partner_spouse_phone)
+
     @api.onchange('jhm_probability')
     def _onchange_jhm_probability(self):
         if self.jhm_probability:

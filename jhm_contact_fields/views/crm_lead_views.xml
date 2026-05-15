@@ -342,8 +342,8 @@
         <field name="inherit_id" ref="crm.view_crm_case_opportunities_filter"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='phone_mobile_search']" position="after">
-                <field name="partner_spouse_phone" string="All Phones"
-                       filter_domain="['|', ('phone', 'ilike', self), ('partner_spouse_phone', 'ilike', self)]"/>
+                <field name="phone_digits" string="All Phones"
+                       filter_domain="['|', ('phone_digits', 'ilike', self), ('spouse_phone_digits', 'ilike', self)]"/>
             </xpath>
         </field>
     </record>
