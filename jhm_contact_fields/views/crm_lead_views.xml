@@ -342,8 +342,7 @@
         <field name="inherit_id" ref="crm.view_crm_case_opportunities_filter"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='phone_mobile_search']" position="after">
-                <field name="phone_digits" string="All Phones"
-                       filter_domain="['|', ('phone_digits', 'ilike', self), ('spouse_phone_digits', 'ilike', self)]"/>
+                <field name="all_phones_search" string="All Phones"/>
             </xpath>
         </field>
     </record>
@@ -452,6 +451,54 @@
             <xpath expr="//h1/field[@name='name']" position="attributes">
                 <attribute name="readonly">0</attribute>
                 <attribute name="invisible">0</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         Hide "Generate Leads" button from all CRM views
+         ══════════════════════════════════════════════════════════════════════ -->
+
+    <record id="jhm_hide_generate_leads_opp_list" model="ir.ui.view">
+        <field name="name">crm.lead.list.opp.hide.generate</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm_iap_mine.crm_lead_view_tree_opportunity"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_generate_leads']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="jhm_hide_generate_leads_lead_list" model="ir.ui.view">
+        <field name="name">crm.lead.list.lead.hide.generate</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm_iap_mine.crm_lead_view_tree_lead"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_generate_leads']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="jhm_hide_generate_leads_opp_kanban" model="ir.ui.view">
+        <field name="name">crm.lead.kanban.opp.hide.generate</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm_iap_mine.view_crm_lead_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_generate_leads']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="jhm_hide_generate_leads_lead_kanban" model="ir.ui.view">
+        <field name="name">crm.lead.kanban.lead.hide.generate</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm_iap_mine.crm_case_kanban_view_leads"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_generate_leads']" position="attributes">
+                <attribute name="invisible">1</attribute>
             </xpath>
         </field>
     </record>

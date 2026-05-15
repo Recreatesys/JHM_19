@@ -159,6 +159,20 @@ class CrmLead(models.Model):
             rec.phone_digits = self._strip_to_digits(rec.phone)
             rec.spouse_phone_digits = self._strip_to_digits(rec.partner_spouse_phone)
 
+    @api.model
+    def _search_all_phones(self, operator, value):
+        """Search both phone_digits and spouse_phone_digits with digits-only input."""
+        import re
+        digits = re.sub(r'\D', '', value or '')
+        if not digits:
+            return [('id', '=', False)]
+        return ['|',
+                ('phone_digits', 'ilike', digits),
+                ('spouse_phone_digits', 'ilike', digits)]
+
+    all_phones_search = fields.Char(
+        string='All Phones', search='_search_all_phones', store=False)
+
     @api.onchange('jhm_probability')
     def _onchange_jhm_probability(self):
         if self.jhm_probability:
