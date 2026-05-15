@@ -6,9 +6,16 @@ def _post_init_hook(env):
     Base rules use company_ids (all user companies) which is too broad."""
     current_company_domain = (
         "['|', ('company_id', '=', False), "
-        "('company_id', '=', user.company_id.id)]"
+        "('company_id', '=', company_id)]"
+    )
+    personal_lead_domain = (
+        "['&', '|', ('company_id', '=', False), ('company_id', '=', company_id), "
+        "'|', ('user_id', '=', user.id), ('user_id', '=', False)]"
     )
     for xmlid in ('crm.crm_lead_company_rule', 'crm.crm_rule_all_lead'):
         rule = env.ref(xmlid, raise_if_not_found=False)
         if rule:
             rule.sudo().write({'domain_force': current_company_domain})
+    rule = env.ref('crm.crm_rule_personal_lead', raise_if_not_found=False)
+    if rule:
+        rule.sudo().write({'domain_force': personal_lead_domain})
