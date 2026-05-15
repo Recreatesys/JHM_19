@@ -62,7 +62,7 @@ class SaleOrder(models.Model):
         return action
 
     def action_set_invoice_in_jhm(self):
-        """Mark this SO to create invoices in JHM HK company."""
+        """Mark this SO to create invoices in JHM HK company and switch user there."""
         self.ensure_one()
         jhm_hk = self.env['res.company'].sudo().search(
             [('name', '=', 'JHM HK')], limit=1)
@@ -75,6 +75,16 @@ class SaleOrder(models.Model):
             partner.sudo().write({'company_id': False})
 
         self.write({'jhm_invoice_company_id': jhm_hk.id})
+
+        # Reload the SO in JHM HK company context
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'sale.order',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'current',
+            'context': {'allowed_company_ids': [jhm_hk.id, self.company_id.id]},
+        }
 
     def action_set_invoice_in_jhml(self):
         """Mark this SO to create invoices in JHML HK (default)."""
