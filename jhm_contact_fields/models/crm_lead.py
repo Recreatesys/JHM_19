@@ -103,6 +103,33 @@ _CRM_TO_PARTNER = {
 class CrmLead(models.Model):
     _inherit = 'crm.lead'
 
+    # ── Duplicate detection: require BOTH email AND phone to match ────────
+    def _compute_potential_lead_duplicates(self):
+        """Override: only flag as duplicate when BOTH email and phone match.
+        Individual clients share common email domains (@gmail, @yahoo etc.)
+        so email-only or phone-only matches produce too many false positives."""
+        SEARCH_RESULT_LIMIT = 21
+        for lead in self:
+            lead_id = lead._origin.id
+            duplicate_lead_ids = self.env['crm.lead']
+
+            email = (lead.email_from or '').strip().lower()
+            phone = lead.phone_sanitized
+
+            if email and phone:
+                domain = [
+                    ('id', '!=', lead_id),
+                    ('email_normalized', '=', email),
+                    ('phone_sanitized', '=', phone),
+                ]
+                model = self.env['crm.lead'].with_context(active_test=False)
+                res = model.search(domain, limit=SEARCH_RESULT_LIMIT)
+                if len(res) < SEARCH_RESULT_LIMIT:
+                    duplicate_lead_ids = res
+
+            lead.duplicate_lead_ids = duplicate_lead_ids + lead
+            lead.duplicate_lead_count = len(duplicate_lead_ids)
+
     # ── Probability as selection ──────────────────────────────────────────
     jhm_probability = fields.Selection(
         PROBABILITY_SELECTION,
