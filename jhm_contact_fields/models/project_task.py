@@ -290,6 +290,19 @@ class JhmSchedulePaymentWizard(models.TransientModel):
                 if jhm_product:
                     inv_product = jhm_product
 
+        # Find income account for the invoice company
+        inv_account = False
+        if sale_order.jhm_invoice_company_id:
+            self.env.cr.execute("""
+                SELECT aa.id FROM account_account aa
+                JOIN account_account_res_company_rel rel ON rel.account_account_id = aa.id
+                WHERE rel.res_company_id = %s AND aa.account_type = 'income'
+                  AND aa.name::text ILIKE '%%Sales%%'
+                ORDER BY aa.id LIMIT 1
+            """, (inv_company.id,))
+            r = self.env.cr.fetchone()
+            inv_account = r[0] if r else False
+
         # Create draft invoices
         invoices_created = []
         so_line = sale_order.order_line[:1]
@@ -297,7 +310,17 @@ class JhmSchedulePaymentWizard(models.TransientModel):
             label = _PAYMENT_LABELS[i] if i < 4 else 'Payment %d' % (i + 1)
             line_name = '%s - %s' % (visa_name, label) if visa_name else label
 
-            invoice = self.env['account.move'].sudo().with_context(
+            inv_line_vals = {
+                'name': line_name,
+                'product_id': inv_product.id if inv_product else False,
+                'quantity': 1,
+                'price_unit': line.amount,
+                'sale_line_ids': [(4, so_line.id)] if so_line else [],
+            }
+            if inv_account:
+                inv_line_vals['account_id'] = inv_account
+
+            invoice = self.env['account.move'].sudo().with_company(inv_company.id).with_context(
                 default_move_type='out_invoice',
             ).create({
                 'move_type': 'out_invoice',
@@ -305,13 +328,7 @@ class JhmSchedulePaymentWizard(models.TransientModel):
                 'company_id': inv_company.id,
                 'invoice_date': line.invoice_date or False,
                 'invoice_date_due': line.due_date or False,
-                'invoice_line_ids': [(0, 0, {
-                    'name': line_name,
-                    'product_id': inv_product.id if inv_product else False,
-                    'quantity': 1,
-                    'price_unit': line.amount,
-                    'sale_line_ids': [(4, so_line.id)] if so_line else [],
-                })],
+                'invoice_line_ids': [(0, 0, inv_line_vals)],
             })
             invoices_created.append(invoice)
 
