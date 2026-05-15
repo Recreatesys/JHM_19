@@ -62,7 +62,7 @@ class SaleOrder(models.Model):
         return action
 
     def action_set_invoice_in_jhm(self):
-        """Mark this SO to create invoices in JHM HK company and switch user there."""
+        """Mark this SO to create all invoices in JHM HK company."""
         self.ensure_one()
         jhm_hk = self.env['res.company'].sudo().search(
             [('name', '=', 'JHM HK')], limit=1)
@@ -76,14 +76,16 @@ class SaleOrder(models.Model):
 
         self.write({'jhm_invoice_company_id': jhm_hk.id})
 
-        # Reload the SO in JHM HK company context
+        # Show confirmation and open Schedule Payment immediately
         return {
             'type': 'ir.actions.act_window',
-            'res_model': 'sale.order',
-            'res_id': self.id,
+            'name': _('Schedule Payment (JHM)'),
+            'res_model': 'jhm.schedule.payment.wizard',
             'view_mode': 'form',
-            'target': 'current',
-            'context': {'allowed_company_ids': [jhm_hk.id, self.company_id.id]},
+            'target': 'new',
+            'context': {
+                'default_sale_order_id': self.id,
+            },
         }
 
     def action_set_invoice_in_jhml(self):
