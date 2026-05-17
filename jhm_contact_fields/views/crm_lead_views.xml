@@ -40,11 +40,9 @@
 
             <!-- Fields in the Contacts tab (appended after the base groups) -->
             <xpath expr="//page[@name='lead']" position="inside">
-                <group string="Personal">
-                    <field name="partner_birthday" string="Birthday"/>
-                </group>
-                <group string="Spouse &amp; Children">
+                <group string="Personal &amp; Family">
                     <group>
+                        <field name="partner_birthday" string="Birthday"/>
                         <field name="partner_spouse_highest_qualification" string="Spouse's Highest Qualification"/>
                         <field name="partner_spouse_occupation"        string="Spouse's Occupation"/>
                     </group>
@@ -53,14 +51,6 @@
                         <field name="partner_child_2"                  string="Applicant Child 2"/>
                         <field name="partner_child_3"                  string="Applicant Child 3"/>
                         <field name="partner_child_4"                  string="Applicant Child 4"/>
-                    </group>
-                </group>
-                <group string="Ownership">
-                    <group>
-                        <field name="process_team_ids" widget="many2many_tags" string="Process Team in Charge" options="{'no_create': True}"/>
-                    </group>
-                    <group>
-                        <field name="process_2_ids" widget="many2many_tags" string="Process 2" options="{'no_create': True}"/>
                     </group>
                 </group>
                 <group string="Case Tracking">
@@ -89,6 +79,12 @@
                            placeholder="Admin notes..."
                            style="font-family:monospace; white-space:pre-wrap;"/>
                 </group>
+            </xpath>
+
+            <!-- Add Process Team and Process 2 to existing Ownership group in Contact tab -->
+            <xpath expr="//group[@name='Misc']/field[@name='team_id']" position="after">
+                <field name="process_team_ids" widget="many2many_tags" string="Process Team in Charge" options="{'no_create': True}"/>
+                <field name="process_2_ids" widget="many2many_tags" string="Process 2" options="{'no_create': True}"/>
             </xpath>
 
             <!-- Replace free-text probability input with selection field -->
