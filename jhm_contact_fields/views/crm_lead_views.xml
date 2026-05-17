@@ -34,7 +34,7 @@
 
             <!-- Co-owner, Ownership, Process 2 — after user_id -->
             <xpath expr="//group[@invisible=&quot;type == 'lead'&quot;]/field[@name='user_id']" position="after">
-                <field name="co_owner_ids" widget="many2many_tags" string="Coownership" options="{'no_create': True}"/>
+                <field name="co_owner_ids" widget="many2many_tags" string="Co-owner" options="{'no_create': True}"/>
                 <field name="process_team_ids" widget="many2many_tags" string="Ownership" options="{'no_create': True}"/>
                 <field name="process_2_ids" widget="many2many_tags" string="Process 2" options="{'no_create': True}"/>
                 <field name="time_to_close"/>
