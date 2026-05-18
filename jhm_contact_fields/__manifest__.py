@@ -27,6 +27,7 @@
             'jhm_contact_fields/static/src/js/import_patch.js',
             'jhm_contact_fields/static/src/xml/import_progress.xml',
             'jhm_contact_fields/static/src/js/import_progress.js',
+            'jhm_contact_fields/static/src/js/project_subtask_default.js',
         ],
     },
     'post_init_hook': '_post_init_hook',
