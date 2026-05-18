@@ -24,11 +24,11 @@
         <field name="name">jhm.lead.performance.line.pivot</field>
         <field name="model">jhm.lead.performance.line</field>
         <field name="arch" type="xml">
-            <!-- Y-axis: Lead Source | X-axis: Visa Program, Probability -->
+            <!-- Y-axis: Lead Source | X-axis: Visa Program, Probability (sorted numerically) -->
             <pivot string="Lead Performance Report" disable_linking="True">
                 <field name="lead_source_id"  type="row"/>
                 <field name="visa_program_id" type="col"/>
-                <field name="probability"     type="col"/>
+                <field name="probability_sort" type="col"/>
                 <field name="lead_count"      type="measure"/>
             </pivot>
         </field>
@@ -76,12 +76,12 @@
         <field name="name">jhm.qualified.lead.line.pivot</field>
         <field name="model">jhm.qualified.lead.line</field>
         <field name="arch" type="xml">
-            <!-- Y-axis rows: Salesperson, Probability, Create Month -->
+            <!-- Y-axis rows: Salesperson, Probability (sorted numerically), Create Month -->
             <pivot string="Qualified Lead Report" disable_linking="True">
-                <field name="user_id"      type="row"/>
-                <field name="probability"  type="row"/>
-                <field name="create_month" type="row" interval="month"/>
-                <field name="lead_count"   type="measure"/>
+                <field name="user_id"           type="row"/>
+                <field name="probability_sort"  type="row"/>
+                <field name="create_month"      type="row" interval="month"/>
+                <field name="lead_count"        type="measure"/>
             </pivot>
         </field>
     </record>

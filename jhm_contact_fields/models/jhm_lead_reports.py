@@ -8,11 +8,12 @@ class JhmLeadPerformanceLine(models.Model):
     _description = 'Lead Performance Report'
     _auto = False
     _rec_name = 'lead_source_id'
-    _order = 'lead_source_id'
+    _order = 'probability_sort, lead_source_id'
 
     lead_source_id  = fields.Many2one('jhm.lead.source',  string='Lead Source',  readonly=True)
     visa_program_id = fields.Many2one('jhm.visa.program', string='Visa Program', readonly=True)
     probability     = fields.Char(string='Probability', readonly=True)
+    probability_sort = fields.Integer(string='Probability Sort', readonly=True)
     lead_count      = fields.Integer(string='# Leads', readonly=True)
 
     def init(self):
@@ -53,6 +54,7 @@ class JhmLeadPerformanceLine(models.Model):
                 c.lead_source_id,
                 c.visa_program_id,
                 c.probability,
+                CASE WHEN c.probability ~ '^\d+$' THEN c.probability::int ELSE 0 END AS probability_sort,
                 COALESCE(cnt.lead_count, 0)   AS lead_count
             FROM combos c
             LEFT JOIN counts cnt
@@ -69,10 +71,11 @@ class JhmQualifiedLeadLine(models.Model):
     _description = 'Qualified Lead Report'
     _auto = False
     _rec_name = 'user_id'
-    _order = 'create_month desc, user_id'
+    _order = 'create_month desc, probability_sort, user_id'
 
     user_id      = fields.Many2one('res.users', string='Salesperson',  readonly=True)
     probability  = fields.Char(string='Probability', readonly=True)
+    probability_sort = fields.Integer(string='Probability Sort', readonly=True)
     create_month = fields.Date(string='Create Date', readonly=True)
     lead_count   = fields.Integer(string='# Qualified Leads', readonly=True)
 
@@ -84,6 +87,7 @@ class JhmQualifiedLeadLine(models.Model):
                 row_number() OVER ()                                         AS id,
                 user_id,
                 jhm_probability                                              AS probability,
+                CASE WHEN jhm_probability ~ '^\d+$' THEN jhm_probability::int ELSE 0 END AS probability_sort,
                 date_trunc('month', create_date AT TIME ZONE 'UTC')::date   AS create_month,
                 COUNT(*)                                                     AS lead_count
             FROM crm_lead
