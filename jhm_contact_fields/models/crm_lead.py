@@ -214,25 +214,39 @@ class CrmLead(models.Model):
                 if rec.partner_id:
                     rec.partner_id.message_subscribe(partner_ids=partners.ids)
 
-            # Sync ownership/coownership to related project tasks
-            ownership_users = rec.process_team_ids | rec.co_owner_ids
-            if ownership_users:
-                try:
-                    tasks = self.env['project.task'].sudo().search([
-                        ('sale_line_id.order_id.opportunity_id', '=', rec.id)
-                    ])
-                    for task in tasks:
-                        task_partners = ownership_users.mapped('partner_id')
-                        task.message_subscribe(partner_ids=task_partners.ids)
-                        # Set assignees if not already set
-                        if not task.user_ids:
-                            task.user_ids = ownership_users
-                    # Also sync to project
-                    projects = tasks.mapped('project_id')
-                    for proj in projects:
-                        proj.message_subscribe(partner_ids=ownership_users.mapped('partner_id').ids)
-                except Exception:
-                    pass  # project module may not be linked
+            # Sync ownership/coownership to related project and tasks
+            try:
+                tasks = self.env['project.task'].sudo().search([
+                    ('sale_line_id.order_id.opportunity_id', '=', rec.id)
+                ])
+                for task in tasks:
+                    task_vals = {}
+                    if rec.process_team_ids:
+                        task_vals['ownership_ids'] = [(6, 0, rec.process_team_ids.ids)]
+                    if rec.co_owner_ids:
+                        task_vals['co_ownership_ids'] = [(6, 0, rec.co_owner_ids.ids)]
+                    # Set assignees as ownership + co-ownership
+                    all_owners = rec.process_team_ids | rec.co_owner_ids
+                    if all_owners:
+                        task_vals['user_ids'] = [(6, 0, all_owners.ids)]
+                        task.message_subscribe(partner_ids=all_owners.mapped('partner_id').ids)
+                    if task_vals:
+                        task.write(task_vals)
+                # Sync to project
+                projects = tasks.mapped('project_id')
+                for proj in projects:
+                    proj_vals = {}
+                    if rec.process_team_ids:
+                        proj_vals['ownership_ids'] = [(6, 0, rec.process_team_ids.ids)]
+                    if rec.co_owner_ids:
+                        proj_vals['co_ownership_ids'] = [(6, 0, rec.co_owner_ids.ids)]
+                    all_owners = rec.process_team_ids | rec.co_owner_ids
+                    if all_owners:
+                        proj.message_subscribe(partner_ids=all_owners.mapped('partner_id').ids)
+                    if proj_vals:
+                        proj.write(proj_vals)
+            except Exception:
+                pass  # project module may not be linked
 
     @api.onchange('user_id', 'co_owner_ids', 'process_team_ids', 'process_2_ids')
     def _onchange_assignment_followers(self):

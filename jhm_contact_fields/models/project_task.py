@@ -108,8 +108,17 @@ class SaleOrder(models.Model):
         }
 
 
+
+
 class ProjectTask(models.Model):
     _inherit = 'project.task'
+
+    ownership_ids = fields.Many2many(
+        'res.users', 'project_task_ownership_rel', 'task_id', 'user_id',
+        string='Ownership', domain=[('share', '=', False)])
+    co_ownership_ids = fields.Many2many(
+        'res.users', 'project_task_co_ownership_rel', 'task_id', 'user_id',
+        string='Co-ownership', domain=[('share', '=', False)])
 
     payment_status = fields.Char(
         string='Payment Status', compute='_compute_payment_status', store=False)
@@ -155,6 +164,13 @@ class ProjectTask(models.Model):
 
 class ProjectProject(models.Model):
     _inherit = 'project.project'
+
+    ownership_ids = fields.Many2many(
+        'res.users', 'project_project_ownership_rel', 'project_id', 'user_id',
+        string='Ownership', domain=[('share', '=', False)])
+    co_ownership_ids = fields.Many2many(
+        'res.users', 'project_project_co_ownership_rel', 'project_id', 'user_id',
+        string='Co-ownership', domain=[('share', '=', False)])
 
     payment_status = fields.Char(
         string='Payment Status', compute='_compute_payment_status', store=False)
