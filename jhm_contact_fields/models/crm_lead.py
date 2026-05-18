@@ -182,6 +182,10 @@ class CrmLead(models.Model):
     email_from = fields.Char(string='Main Applicant Email')
     phone = fields.Char(string='Main Applicant Phone')
 
+    # Lock flag — when True, import operations will not overwrite
+    # phone, user_id, co_owner_ids fields
+    import_locked = fields.Boolean(default=False)
+
     # ── Assignment fields ─────────────────────────────────────────────────
     co_owner_ids = fields.Many2many(
         'res.users', 'crm_lead_co_owner_rel', 'lead_id', 'user_id',

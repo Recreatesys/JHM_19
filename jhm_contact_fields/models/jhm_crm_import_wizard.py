@@ -1225,6 +1225,11 @@ class JhmCrmImportWizard(models.TransientModel):
                             update_vals['partner_spouse_email'] = meta['spouse_email']
                         # Remove identity/match keys that should not be written as fields
                         update_vals.pop('type', None)
+                        # Respect import_locked — do not overwrite protected fields
+                        if lead.import_locked:
+                            for f in ('phone', 'user_id', 'co_owner_ids',
+                                      'partner_spouse_phone', 'partner_spouse_email'):
+                                update_vals.pop(f, None)
                         if update_vals:
                             lead.write(update_vals)
                         matched_leads.append(lead)
