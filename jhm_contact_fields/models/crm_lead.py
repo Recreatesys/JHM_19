@@ -1063,12 +1063,16 @@ class CrmLead(models.Model):
     # ── Followup overdue notification cron ────────────────────────────────
     @api.model
     def _cron_followup_overdue_notification(self):
-        """Notify salesperson when Last Call Date < Followup Date and
-        probability is between 50% and 90% (inclusive)."""
+        """Followup notifications:
+        - Overdue: followup_date < today AND last_call_date < followup_date AND prob 50-90%
+        - Today: followup_date = today → schedule as today's activity
+        """
         today = fields.Date.today()
-        leads = self.search([
+
+        # 1. Overdue: followup date has PASSED (strictly before today)
+        overdue_leads = self.search([
             ('partner_sf_followup_date', '!=', False),
-            ('partner_sf_followup_date', '<=', today),
+            ('partner_sf_followup_date', '<', today),
             ('partner_last_call_date', '<', today),
             ('probability', '>=', 50),
             ('probability', '<=', 90),
@@ -1076,7 +1080,7 @@ class CrmLead(models.Model):
             ('active', '=', True),
             ('type', '=', 'opportunity'),
         ])
-        for lead in leads:
+        for lead in overdue_leads:
             if lead.partner_last_call_date and lead.partner_sf_followup_date \
                     and lead.partner_last_call_date < lead.partner_sf_followup_date:
                 lead.activity_schedule(
@@ -1088,6 +1092,25 @@ class CrmLead(models.Model):
                          % (lead.partner_sf_followup_date, lead.partner_last_call_date),
                     user_id=lead.user_id.id,
                 )
+
+        # 2. Today: followup date IS today → schedule as today's activity
+        today_leads = self.search([
+            ('partner_sf_followup_date', '=', today),
+            ('probability', '>=', 50),
+            ('probability', '<=', 90),
+            ('user_id', '!=', False),
+            ('active', '=', True),
+            ('type', '=', 'opportunity'),
+        ])
+        for lead in today_leads:
+            lead.activity_schedule(
+                'mail.mail_activity_data_todo',
+                date_deadline=today,
+                summary='Followup due today: %s' % lead.name,
+                note='Follow up on this opportunity is due today (%s).'
+                     % lead.partner_sf_followup_date,
+                user_id=lead.user_id.id,
+            )
 
     def action_sale_quotations_new_jhm(self):
         """Create a new quotation under 'JHM HK' company.
