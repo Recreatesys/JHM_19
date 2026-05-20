@@ -46,17 +46,6 @@
         <field name="domain">[('company_id', '=', 1)]</field>
     </record>
 
-    <!-- Rename HK menus -->
-    <menuitem id="menu_jhm_sales_mtd_report" name="HK Sales Report (MTD)"/>
-    <menuitem id="menu_sales_report" name="HK Sales Report"/>
-    <menuitem id="menu_jhm_daily_sales_report" name="HK Daily Sales Report"/>
-    <menuitem id="menu_lead_performance_report" name="HK Lead Performance Report"/>
-    <menuitem id="menu_qualified_lead_report" name="HK Qualified Lead Report"/>
-    <menuitem id="menu_appointment_report" name="HK Appointment Report"/>
-    <menuitem id="menu_lead_appointment_report" name="HK Lead to Appointment Report"/>
-    <menuitem id="menu_follow_up_report" name="HK Follow Up Report"/>
-    <menuitem id="menu_ready_to_close_report" name="HK Ready to Close Report"/>
-
     <!-- ══════════════════════════════════════════════════════════════════════
          VN Reports — No salesperson default filters
          ══════════════════════════════════════════════════════════════════════ -->
