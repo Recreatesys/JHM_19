@@ -20,6 +20,7 @@
         'views/jhm_crm_contact_sync_wizard_views.xml',
         'views/project_task_views.xml',
         'report/jhm_invoice_templates.xml',
+        'views/company_reports.xml',
     ],
     'assets': {
         'web.assets_backend': [

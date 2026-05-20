@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         HK Reports — Rename existing actions + add company domain
+         ══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- Rename existing actions to HK -->
+    <record id="action_jhm_sales_mtd_report" model="ir.actions.act_window">
+        <field name="name">HK Sales Report (MTD)</field>
+        <field name="domain">[('company_id', '=', 1)]</field>
+    </record>
+    <record id="action_sales_report" model="ir.actions.act_window">
+        <field name="name">HK Sales Report</field>
+        <field name="domain">[('company_id', '=', 1), ('type', '=', 'opportunity')]</field>
+    </record>
+    <record id="action_jhm_daily_sales_report_wizard" model="ir.actions.act_window">
+        <field name="name">HK Daily Sales Report</field>
+    </record>
+    <record id="action_lead_performance_report" model="ir.actions.act_window">
+        <field name="name">HK Lead Performance Report</field>
+        <field name="domain">[('company_id', '=', 1)]</field>
+    </record>
+    <record id="action_qualified_lead_report" model="ir.actions.act_window">
+        <field name="name">HK Qualified Lead Report</field>
+        <field name="domain">[('company_id', '=', 1)]</field>
+    </record>
+    <record id="action_appointment_report" model="ir.actions.act_window">
+        <field name="name">HK Appointment Report</field>
+        <field name="domain">[('company_id', '=', 1)]</field>
+    </record>
+    <record id="action_lead_appointment_report" model="ir.actions.act_window">
+        <field name="name">HK Lead to Appointment Report</field>
+        <field name="domain">[('company_id', '=', 1)]</field>
+    </record>
+    <record id="action_follow_up_report" model="ir.actions.act_window">
+        <field name="name">HK Follow Up Report</field>
+        <field name="domain">[('company_id', '=', 1)]</field>
+    </record>
+    <record id="action_ready_to_close_report" model="ir.actions.act_window">
+        <field name="name">HK Ready to Close Report</field>
+        <field name="domain">[('company_id', '=', 1), ('type', '=', 'opportunity')]</field>
+    </record>
+    <record id="action_sales_channel_report" model="ir.actions.act_window">
+        <field name="name">HK Sales Channel Report</field>
+        <field name="domain">[('company_id', '=', 1)]</field>
+    </record>
+
+    <!-- Rename HK menus -->
+    <menuitem id="menu_jhm_sales_mtd_report" name="HK Sales Report (MTD)"/>
+    <menuitem id="menu_sales_report" name="HK Sales Report"/>
+    <menuitem id="menu_jhm_daily_sales_report" name="HK Daily Sales Report"/>
+    <menuitem id="menu_lead_performance_report" name="HK Lead Performance Report"/>
+    <menuitem id="menu_qualified_lead_report" name="HK Qualified Lead Report"/>
+    <menuitem id="menu_appointment_report" name="HK Appointment Report"/>
+    <menuitem id="menu_lead_appointment_report" name="HK Lead to Appointment Report"/>
+    <menuitem id="menu_follow_up_report" name="HK Follow Up Report"/>
+    <menuitem id="menu_ready_to_close_report" name="HK Ready to Close Report"/>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         VN Reports — No salesperson default filters
+         ══════════════════════════════════════════════════════════════════════ -->
+
+    <record id="action_vn_sales_mtd_report" model="ir.actions.act_window">
+        <field name="name">VN Sales Report (MTD)</field>
+        <field name="res_model">jhm.sales.mtd.line</field>
+        <field name="view_mode">pivot,list</field>
+        <field name="domain">[('company_id', '=', 3)]</field>
+        <field name="context">{}</field>
+    </record>
+    <menuitem id="menu_vn_sales_mtd_report" name="VN Sales Report (MTD)"
+              parent="crm.crm_menu_report" action="action_vn_sales_mtd_report" sequence="50"/>
+
+    <record id="action_vn_sales_report" model="ir.actions.act_window">
+        <field name="name">VN Sales Report</field>
+        <field name="res_model">crm.lead</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('company_id', '=', 3), ('type', '=', 'opportunity')]</field>
+        <field name="context">{}</field>
+    </record>
+    <menuitem id="menu_vn_sales_report" name="VN Sales Report"
+              parent="crm.crm_menu_report" action="action_vn_sales_report" sequence="51"/>
+
+    <record id="action_vn_daily_sales_report" model="ir.actions.act_window">
+        <field name="name">VN Daily Sales Report</field>
+        <field name="res_model">jhm.sales.daily.line</field>
+        <field name="view_mode">pivot</field>
+        <field name="domain">[('company_id', '=', 3)]</field>
+        <field name="context">{}</field>
+    </record>
+    <menuitem id="menu_vn_daily_sales_report" name="VN Daily Sales Report"
+              parent="crm.crm_menu_report" action="action_vn_daily_sales_report" sequence="52"/>
+
+    <record id="action_vn_lead_performance_report" model="ir.actions.act_window">
+        <field name="name">VN Lead Performance Report</field>
+        <field name="res_model">jhm.lead.performance.line</field>
+        <field name="view_mode">pivot</field>
+        <field name="domain">[('company_id', '=', 3)]</field>
+        <field name="context">{}</field>
+    </record>
+    <menuitem id="menu_vn_lead_performance_report" name="VN Lead Performance Report"
+              parent="crm.crm_menu_report" action="action_vn_lead_performance_report" sequence="53"/>
+
+    <record id="action_vn_qualified_lead_report" model="ir.actions.act_window">
+        <field name="name">VN Qualified Lead Report</field>
+        <field name="res_model">jhm.qualified.lead.line</field>
+        <field name="view_mode">pivot</field>
+        <field name="domain">[('company_id', '=', 3)]</field>
+        <field name="context">{}</field>
+    </record>
+    <menuitem id="menu_vn_qualified_lead_report" name="VN Qualified Lead Report"
+              parent="crm.crm_menu_report" action="action_vn_qualified_lead_report" sequence="54"/>
+
+    <record id="action_vn_appointment_report" model="ir.actions.act_window">
+        <field name="name">VN Appointment Report</field>
+        <field name="res_model">crm.lead</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('company_id', '=', 3), ('type', '=', 'opportunity'), ('partner_appointment_date', '!=', False)]</field>
+        <field name="context">{}</field>
+    </record>
+    <menuitem id="menu_vn_appointment_report" name="VN Appointment Report"
+              parent="crm.crm_menu_report" action="action_vn_appointment_report" sequence="55"/>
+
+    <record id="action_vn_lead_appointment_report" model="ir.actions.act_window">
+        <field name="name">VN Lead to Appointment Report</field>
+        <field name="res_model">jhm.appointment.line</field>
+        <field name="view_mode">pivot</field>
+        <field name="domain">[('company_id', '=', 3)]</field>
+        <field name="context">{}</field>
+    </record>
+    <menuitem id="menu_vn_lead_appointment_report" name="VN Lead to Appointment Report"
+              parent="crm.crm_menu_report" action="action_vn_lead_appointment_report" sequence="56"/>
+
+    <record id="action_vn_follow_up_report" model="ir.actions.act_window">
+        <field name="name">VN Follow Up Report</field>
+        <field name="res_model">jhm.follow.up.line</field>
+        <field name="view_mode">pivot</field>
+        <field name="domain">[('company_id', '=', 3)]</field>
+        <field name="context">{}</field>
+    </record>
+    <menuitem id="menu_vn_follow_up_report" name="VN Follow Up Report"
+              parent="crm.crm_menu_report" action="action_vn_follow_up_report" sequence="57"/>
+
+    <record id="action_vn_ready_to_close_report" model="ir.actions.act_window">
+        <field name="name">VN Ready to Close Report</field>
+        <field name="res_model">crm.lead</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('company_id', '=', 3), ('type', '=', 'opportunity')]</field>
+        <field name="context">{}</field>
+    </record>
+    <menuitem id="menu_vn_ready_to_close_report" name="VN Ready to Close Report"
+              parent="crm.crm_menu_report" action="action_vn_ready_to_close_report" sequence="58"/>
+
+    <!-- ══════════════════════════════════════════════════════════════════════
+         TW Reports
+         ══════════════════════════════════════════════════════════════════════ -->
+
+    <record id="action_tw_sales_mtd_report" model="ir.actions.act_window">
+        <field name="name">TW Sales Report (MTD)</field>
+        <field name="res_model">jhm.sales.mtd.line</field>
+        <field name="view_mode">pivot,list</field>
+        <field name="domain">[('company_id', '=', 2)]</field>
+        <field name="context">{}</field>
+    </record>
+    <menuitem id="menu_tw_sales_mtd_report" name="TW Sales Report (MTD)"
+              parent="crm.crm_menu_report" action="action_tw_sales_mtd_report" sequence="60"/>
+
+    <record id="action_tw_sales_report" model="ir.actions.act_window">
+        <field name="name">TW Sales Report</field>
+        <field name="res_model">crm.lead</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('company_id', '=', 2), ('type', '=', 'opportunity')]</field>
+        <field name="context">{}</field>
+    </record>
+    <menuitem id="menu_tw_sales_report" name="TW Sales Report"
+              parent="crm.crm_menu_report" action="action_tw_sales_report" sequence="61"/>
+
+    <record id="action_tw_daily_sales_report" model="ir.actions.act_window">
+        <field name="name">TW Daily Sales Report</field>
+        <field name="res_model">jhm.sales.daily.line</field>
+        <field name="view_mode">pivot</field>
+        <field name="domain">[('company_id', '=', 2)]</field>
+        <field name="context">{}</field>
+    </record>
+    <menuitem id="menu_tw_daily_sales_report" name="TW Daily Sales Report"
+              parent="crm.crm_menu_report" action="action_tw_daily_sales_report" sequence="62"/>
+
+    <record id="action_tw_lead_performance_report" model="ir.actions.act_window">
+        <field name="name">TW Lead Performance Report</field>
+        <field name="res_model">jhm.lead.performance.line</field>
+        <field name="view_mode">pivot</field>
+        <field name="domain">[('company_id', '=', 2)]</field>
+        <field name="context">{}</field>
+    </record>
+    <menuitem id="menu_tw_lead_performance_report" name="TW Lead Performance Report"
+              parent="crm.crm_menu_report" action="action_tw_lead_performance_report" sequence="63"/>
+
+    <record id="action_tw_qualified_lead_report" model="ir.actions.act_window">
+        <field name="name">TW Qualified Lead Report</field>
+        <field name="res_model">jhm.qualified.lead.line</field>
+        <field name="view_mode">pivot</field>
+        <field name="domain">[('company_id', '=', 2)]</field>
+        <field name="context">{}</field>
+    </record>
+    <menuitem id="menu_tw_qualified_lead_report" name="TW Qualified Lead Report"
+              parent="crm.crm_menu_report" action="action_tw_qualified_lead_report" sequence="64"/>
+
+    <record id="action_tw_appointment_report" model="ir.actions.act_window">
+        <field name="name">TW Appointment Report</field>
+        <field name="res_model">crm.lead</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('company_id', '=', 2), ('type', '=', 'opportunity'), ('partner_appointment_date', '!=', False)]</field>
+        <field name="context">{}</field>
+    </record>
+    <menuitem id="menu_tw_appointment_report" name="TW Appointment Report"
+              parent="crm.crm_menu_report" action="action_tw_appointment_report" sequence="65"/>
+
+    <record id="action_tw_lead_appointment_report" model="ir.actions.act_window">
+        <field name="name">TW Lead to Appointment Report</field>
+        <field name="res_model">jhm.appointment.line</field>
+        <field name="view_mode">pivot</field>
+        <field name="domain">[('company_id', '=', 2)]</field>
+        <field name="context">{}</field>
+    </record>
+    <menuitem id="menu_tw_lead_appointment_report" name="TW Lead to Appointment Report"
+              parent="crm.crm_menu_report" action="action_tw_lead_appointment_report" sequence="66"/>
+
+    <record id="action_tw_follow_up_report" model="ir.actions.act_window">
+        <field name="name">TW Follow Up Report</field>
+        <field name="res_model">jhm.follow.up.line</field>
+        <field name="view_mode">pivot</field>
+        <field name="domain">[('company_id', '=', 2)]</field>
+        <field name="context">{}</field>
+    </record>
+    <menuitem id="menu_tw_follow_up_report" name="TW Follow Up Report"
+              parent="crm.crm_menu_report" action="action_tw_follow_up_report" sequence="67"/>
+
+    <record id="action_tw_ready_to_close_report" model="ir.actions.act_window">
+        <field name="name">TW Ready to Close Report</field>
+        <field name="res_model">crm.lead</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('company_id', '=', 2), ('type', '=', 'opportunity')]</field>
+        <field name="context">{}</field>
+    </record>
+    <menuitem id="menu_tw_ready_to_close_report" name="TW Ready to Close Report"
+              parent="crm.crm_menu_report" action="action_tw_ready_to_close_report" sequence="68"/>
+
+</odoo>

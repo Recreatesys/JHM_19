@@ -26,6 +26,7 @@ class JhmSalesMtdLine(models.Model):
     _order = 'period, user_id'
 
     user_id          = fields.Many2one('res.users',       string='Salesperson',  readonly=True)
+    company_id       = fields.Many2one('res.company',     string='Company',      readonly=True)
     period           = fields.Char(string='Period', readonly=True)
 
     new_leads           = fields.Integer(string='New Leads',              readonly=True)
@@ -49,6 +50,18 @@ class JhmSalesMtdLine(models.Model):
             -- ═══════════════════════════════════════════════════════════
             -- CURRENT MONTH
             -- ═══════════════════════════════════════════════════════════
+
+            -- Map user_id -> company_id (most common company for that user's leads)
+            user_company AS (
+                SELECT user_id, company_id
+                FROM (
+                    SELECT user_id, company_id,
+                           ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY COUNT(*) DESC) AS rn
+                    FROM crm_lead
+                    WHERE type = 'opportunity' AND user_id IS NOT NULL AND company_id IS NOT NULL
+                    GROUP BY user_id, company_id
+                ) ranked WHERE rn = 1
+            ),
 
             -- New Leads: created in current month AND last call date in current month
             c_nl AS (
@@ -217,6 +230,7 @@ class JhmSalesMtdLine(models.Model):
             SELECT
                 row_number() OVER () AS id,
                 u.user_id,
+                uc.company_id,
                 'Current Month'::text AS period,
                 COALESCE(c_nl.cnt, 0) AS new_leads,
                 COALESCE(c_ql.cnt, 0) AS qualified_leads,
@@ -233,6 +247,7 @@ class JhmSalesMtdLine(models.Model):
                      ELSE 0 END AS sales_pct,
                 COALESCE(c_so.amt, 0.0) AS sales_amount
             FROM all_users u
+            LEFT JOIN user_company uc ON uc.user_id = u.user_id
             LEFT JOIN c_nl ON c_nl.user_id = u.user_id
             LEFT JOIN c_ql ON c_ql.user_id = u.user_id
             LEFT JOIN c_ap ON c_ap.user_id = u.user_id
@@ -244,6 +259,7 @@ class JhmSalesMtdLine(models.Model):
             SELECT
                 (SELECT COUNT(*) FROM all_users) + row_number() OVER () AS id,
                 u.user_id,
+                uc.company_id,
                 'Previous'::text AS period,
                 COALESCE(p_nl.cnt, 0) AS new_leads,
                 COALESCE(p_ql.cnt, 0) AS qualified_leads,
@@ -260,6 +276,7 @@ class JhmSalesMtdLine(models.Model):
                      ELSE 0 END AS sales_pct,
                 COALESCE(p_so.amt, 0.0) AS sales_amount
             FROM all_users u
+            LEFT JOIN user_company uc ON uc.user_id = u.user_id
             LEFT JOIN p_nl ON p_nl.user_id = u.user_id
             LEFT JOIN p_ql ON p_ql.user_id = u.user_id
             LEFT JOIN p_ap ON p_ap.user_id = u.user_id

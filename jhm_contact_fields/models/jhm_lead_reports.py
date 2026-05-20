@@ -12,6 +12,7 @@ class JhmLeadPerformanceLine(models.Model):
 
     lead_source_id  = fields.Many2one('jhm.lead.source',  string='Lead Source',  readonly=True)
     visa_program_id = fields.Many2one('jhm.visa.program', string='Visa Program', readonly=True)
+    company_id      = fields.Many2one('res.company',      string='Company',      readonly=True)
     probability     = fields.Char(string='Probability', readonly=True)
     probability_sort = fields.Integer(string='Probability Sort', readonly=True)
     lead_count      = fields.Integer(string='# Leads', readonly=True)
@@ -20,47 +21,26 @@ class JhmLeadPerformanceLine(models.Model):
         self.env.cr.execute("DROP VIEW IF EXISTS jhm_lead_performance_line CASCADE")
         self.env.cr.execute("""
             CREATE OR REPLACE VIEW jhm_lead_performance_line AS
-            WITH combos AS (
-                -- All lead sources × all visa programs × all probabilities that appear in leads
+            WITH counts AS (
                 SELECT
-                    ls.id  AS lead_source_id,
-                    cl.partner_visa_program_id AS visa_program_id,
-                    cl.jhm_probability         AS probability
-                FROM jhm_lead_source ls
-                CROSS JOIN (
-                    SELECT DISTINCT partner_visa_program_id, jhm_probability
-                    FROM crm_lead
-                    WHERE type = 'opportunity'
-                ) cl
-
-                UNION
-
-                -- Ensure every lead source appears at least once (with NULLs)
-                SELECT ls.id, NULL::integer, NULL::varchar
-                FROM jhm_lead_source ls
-            ),
-            counts AS (
-                SELECT
+                    company_id,
                     partner_jhm_lead_source_id AS lead_source_id,
                     partner_visa_program_id    AS visa_program_id,
                     jhm_probability            AS probability,
                     COUNT(*)                   AS lead_count
                 FROM crm_lead
                 WHERE type = 'opportunity'
-                GROUP BY 1, 2, 3
+                GROUP BY 1, 2, 3, 4
             )
             SELECT
                 row_number() OVER ()          AS id,
-                c.lead_source_id,
-                c.visa_program_id,
-                c.probability,
-                CASE WHEN c.probability ~ '^\d+$' THEN c.probability::int ELSE 0 END AS probability_sort,
-                COALESCE(cnt.lead_count, 0)   AS lead_count
-            FROM combos c
-            LEFT JOIN counts cnt
-                ON cnt.lead_source_id IS NOT DISTINCT FROM c.lead_source_id
-               AND cnt.visa_program_id IS NOT DISTINCT FROM c.visa_program_id
-               AND cnt.probability     IS NOT DISTINCT FROM c.probability
+                company_id,
+                lead_source_id,
+                visa_program_id,
+                probability,
+                CASE WHEN probability ~ '^\d+$' THEN probability::int ELSE 0 END AS probability_sort,
+                lead_count
+            FROM counts
         """)
 
 
@@ -73,7 +53,8 @@ class JhmQualifiedLeadLine(models.Model):
     _rec_name = 'user_id'
     _order = 'create_month desc, probability_sort, user_id'
 
-    user_id      = fields.Many2one('res.users', string='Salesperson',  readonly=True)
+    user_id      = fields.Many2one('res.users',    string='Salesperson',  readonly=True)
+    company_id   = fields.Many2one('res.company',  string='Company',      readonly=True)
     probability  = fields.Char(string='Probability', readonly=True)
     probability_sort = fields.Integer(string='Probability Sort', readonly=True)
     create_month = fields.Date(string='Create Date', readonly=True)
@@ -86,6 +67,7 @@ class JhmQualifiedLeadLine(models.Model):
             SELECT
                 row_number() OVER ()                                         AS id,
                 user_id,
+                company_id,
                 jhm_probability                                              AS probability,
                 CASE WHEN jhm_probability ~ '^\d+$' THEN jhm_probability::int ELSE 0 END AS probability_sort,
                 date_trunc('month', create_date AT TIME ZONE 'UTC')::date   AS create_month,
@@ -94,7 +76,7 @@ class JhmQualifiedLeadLine(models.Model):
             WHERE type = 'opportunity'
               AND probability >= 30
               AND user_id IS NOT NULL
-            GROUP BY user_id, jhm_probability, create_month
+            GROUP BY user_id, company_id, jhm_probability, create_month
         """)
 
 
@@ -107,6 +89,7 @@ class JhmAppointmentLine(models.Model):
     _order = 'appointment_date desc, user_id'
 
     user_id         = fields.Many2one('res.users',        string='Salesperson',   readonly=True)
+    company_id      = fields.Many2one('res.company',      string='Company',       readonly=True)
     visa_program_id = fields.Many2one('jhm.visa.program', string='Visa Program',  readonly=True)
     appointment_date = fields.Date(string='Appointment Date', readonly=True)
     appointment_count = fields.Integer(string='# Appointments', readonly=True)
@@ -118,13 +101,14 @@ class JhmAppointmentLine(models.Model):
             SELECT
                 row_number() OVER ()             AS id,
                 user_id,
+                company_id,
                 partner_visa_program_id          AS visa_program_id,
                 partner_appointment_date         AS appointment_date,
                 COUNT(*)                         AS appointment_count
             FROM crm_lead
             WHERE type = 'opportunity'
               AND partner_appointment_date IS NOT NULL
-            GROUP BY user_id, partner_visa_program_id, partner_appointment_date
+            GROUP BY user_id, company_id, partner_visa_program_id, partner_appointment_date
         """)
 
 
@@ -137,6 +121,7 @@ class JhmFollowUpLine(models.Model):
     _order = 'followup_date desc, user_id'
 
     user_id         = fields.Many2one('res.users',        string='Salesperson',   readonly=True)
+    company_id      = fields.Many2one('res.company',      string='Company',       readonly=True)
     visa_program_id = fields.Many2one('jhm.visa.program', string='Visa Program',  readonly=True)
     create_date     = fields.Date(string='Create Date',   readonly=True)
     followup_date   = fields.Date(string='Follow Up Date', readonly=True)
@@ -149,6 +134,7 @@ class JhmFollowUpLine(models.Model):
             SELECT
                 row_number() OVER ()                                        AS id,
                 user_id,
+                company_id,
                 partner_visa_program_id                                     AS visa_program_id,
                 date_trunc('day', create_date AT TIME ZONE 'UTC')::date     AS create_date,
                 partner_sf_followup_date                                    AS followup_date,
@@ -156,7 +142,7 @@ class JhmFollowUpLine(models.Model):
             FROM crm_lead
             WHERE type = 'opportunity'
               AND user_id IS NOT NULL
-            GROUP BY user_id, partner_visa_program_id, create_date, partner_sf_followup_date
+            GROUP BY user_id, company_id, partner_visa_program_id, create_date, partner_sf_followup_date
         """)
 
 
@@ -171,27 +157,16 @@ class JhmSalesChannelLine(models.Model):
 
     industry_id    = fields.Many2one('res.partner.industry', string='Industry',    readonly=True)
     lead_source_id = fields.Many2one('jhm.lead.source',      string='Lead Source', readonly=True)
+    company_id     = fields.Many2one('res.company',           string='Company',    readonly=True)
     invoiced_amount = fields.Float(string='Invoiced Amount', digits=(16, 2),       readonly=True)
 
     def init(self):
         self.env.cr.execute("DROP VIEW IF EXISTS jhm_sales_channel_line CASCADE")
         self.env.cr.execute("""
             CREATE OR REPLACE VIEW jhm_sales_channel_line AS
-            WITH combos AS (
-                -- Every industry × every lead source (ensures all appear even with 0)
-                SELECT pi.id AS industry_id, ls.id AS lead_source_id
-                FROM res_partner_industry pi
-                CROSS JOIN jhm_lead_source ls
-
-                UNION
-
-                -- NULL industry row so lead sources without an industry still appear
-                SELECT NULL::integer AS industry_id, ls.id AS lead_source_id
-                FROM jhm_lead_source ls
-            ),
-            invoiced AS (
-                -- Distinct invoice total per opportunity to avoid line-level duplication
+            WITH invoiced AS (
                 SELECT
+                    so.company_id,
                     rp.industry_id,
                     cl.partner_jhm_lead_source_id             AS lead_source_id,
                     SUM(am_agg.amount_untaxed)                AS invoiced_amount
@@ -207,15 +182,13 @@ class JhmSalesChannelLine(models.Model):
                 JOIN sale_order so ON so.id = am_agg.order_id
                 LEFT JOIN crm_lead cl ON cl.id = so.opportunity_id
                 LEFT JOIN res_partner rp ON rp.id = so.partner_id
-                GROUP BY rp.industry_id, cl.partner_jhm_lead_source_id
+                GROUP BY so.company_id, rp.industry_id, cl.partner_jhm_lead_source_id
             )
             SELECT
                 row_number() OVER ()             AS id,
-                c.industry_id,
-                c.lead_source_id,
-                COALESCE(inv.invoiced_amount, 0) AS invoiced_amount
-            FROM combos c
-            LEFT JOIN invoiced inv
-                ON inv.industry_id    IS NOT DISTINCT FROM c.industry_id
-               AND inv.lead_source_id IS NOT DISTINCT FROM c.lead_source_id
+                company_id,
+                industry_id,
+                lead_source_id,
+                COALESCE(invoiced_amount, 0)     AS invoiced_amount
+            FROM invoiced
         """)

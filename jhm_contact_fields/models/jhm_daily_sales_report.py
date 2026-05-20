@@ -15,6 +15,7 @@ class JhmSalesDailyLine(models.Model):
     _order = 'date desc, user_id'
 
     user_id = fields.Many2one('res.users', string='Salesperson', readonly=True)
+    company_id = fields.Many2one('res.company', string='Company', readonly=True)
     date = fields.Date(string='Date', readonly=True)
 
     new_leads = fields.Integer(string='# New Leads', readonly=True)
@@ -30,6 +31,18 @@ class JhmSalesDailyLine(models.Model):
         self.env.cr.execute("""
             CREATE OR REPLACE VIEW jhm_sales_daily_line AS
             WITH
+
+            -- Map user_id -> company_id
+            user_company AS (
+                SELECT user_id, company_id
+                FROM (
+                    SELECT user_id, company_id,
+                           ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY COUNT(*) DESC) AS rn
+                    FROM crm_lead
+                    WHERE type = 'opportunity' AND user_id IS NOT NULL AND company_id IS NOT NULL
+                    GROUP BY user_id, company_id
+                ) ranked WHERE rn = 1
+            ),
 
             -- All (user_id, date) pairs that have any activity
             salesperson_dates AS (
@@ -146,6 +159,7 @@ class JhmSalesDailyLine(models.Model):
             SELECT
                 row_number() OVER () AS id,
                 sd.user_id,
+                uc.company_id,
                 sd.d                        AS date,
                 COALESCE(nl.cnt,   0)       AS new_leads,
                 COALESCE(el.total, 0)       AS existing_leads,
@@ -155,6 +169,7 @@ class JhmSalesDailyLine(models.Model):
                 COALESCE(ap.cnt,   0)       AS appointment_count,
                 COALESCE(sa.amt,   0.0)     AS daily_sales
             FROM salesperson_dates sd
+            LEFT JOIN user_company     uc ON uc.user_id = sd.user_id
             LEFT JOIN new_leads_agg    nl ON nl.user_id = sd.user_id AND nl.d = sd.d
             LEFT JOIN existing_leads_agg el ON el.user_id = sd.user_id
             LEFT JOIN calls_agg        ca ON ca.user_id = sd.user_id AND ca.d = sd.d
